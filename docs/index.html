@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiet New Tab — A Calm Chrome Extension with Live Solar Sky</title>
+  <meta name="description" content="Replace your Chrome new tab with a calm, minimal interface featuring a live solar sky, real-time clock, and clean search bar. Free, private, and beautiful.">
+  <meta name="keywords" content="chrome extension, new tab, minimal, solar sky, sunrise, sunset, clock, search, productivity, calm, distraction-free">
+  <meta name="author" content="Mohamed Shakib">
+  <meta name="robots" content="index, follow">
+  <meta name="google-site-verification" content="9CZoOWg6A91RhC9ZmWRSlfhuDOC3rtcBxyWy7U6pvqg" />
+  <link rel="canonical" href="https://quiet-new-tab.pages.dev/">
+  <link rel="alternate" href="https://mo-shakib.github.io/quiet-new-tab/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Quiet New Tab — Live Solar Sky for Chrome">
+  <meta property="og:description" content="A Chrome extension that replaces your new tab with a calm, minimal interface featuring a live solar sky, real-time clock, and clean search bar.">
+  <meta property="og:url" content="https://quiet-new-tab.pages.dev/">
+  <meta property="og:image" content="https://quiet-new-tab.pages.dev/images/og-daytime.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Quiet New Tab Chrome extension showing a live solar sky with real-time clock and search bar">
+  <meta property="og:site_name" content="Quiet New Tab">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Quiet New Tab — Live Solar Sky for Chrome">
+  <meta name="twitter:description" content="Replace your Chrome new tab with a calm, minimal interface featuring a live solar sky, real-time clock, and clean search bar.">
+  <meta name="twitter:image" content="https://quiet-new-tab.pages.dev/images/og-daytime.jpg">
+  <meta name="twitter:image:alt" content="Quiet New Tab Chrome extension showing a live solar sky with real-time clock and search bar">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Quiet New Tab",
+    "operatingSystem": "Chrome",
+    "applicationCategory": "BrowserApplication",
+    "description": "A Chrome extension that replaces your new tab page with a calm, minimal interface featuring a live solar sky, real-time clock, and a clean search bar.",
+    "url": "https://quiet-new-tab.pages.dev/",
+    "author": {
+      "@type": "Person",
+      "name": "Mohamed Shakib",
+      "url": "https://github.com/Mo-Shakib"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "license": "https://opensource.org/licenses/MIT",
+    "screenshot": "https://quiet-new-tab.pages.dev/images/daytime.jpg"
+  }
+  </script>
+
+  <!-- Favicon (sun emoji as SVG) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☀️</text></svg>">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Skip Navigation -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Header / Navigation -->
+  <header class="site-header" role="banner">
+    <nav class="nav-container" aria-label="Main navigation">
+      <a href="#" class="logo" aria-label="Quiet New Tab home">
+        <span class="logo-icon" aria-hidden="true">☀️</span>
+        <span class="logo-text">Quiet New Tab</span>
+      </a>
+      <ul class="nav-links" role="list">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#showcase">Showcase</a></li>
+        <li><a href="#use-cases">Use Cases</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <a href="https://github.com/Mo-Shakib/quiet-tab" class="nav-cta" target="_blank" rel="noopener noreferrer" aria-label="View Quiet New Tab source code on GitHub">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section" aria-labelledby="hero-heading">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="hero-gradient"></div>
+        <div class="hero-stars"></div>
+      </div>
+      <div class="hero-content">
+        <p class="hero-badge">Free &amp; Open Source Chrome Extension</p>
+        <h1 id="hero-heading">A quiet new tab<br>for a calmer day</h1>
+        <p class="hero-subtitle">Replace Chrome's cluttered new tab with a <strong>live solar sky</strong> that follows the real sun — dawn to dusk, every day. With a real-time clock, clean search bar, and zero distractions.</p>
+        <div class="hero-actions">
+          <a href="https://github.com/Mo-Shakib/quiet-tab" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Extension
+          </a>
+          <a href="#showcase" class="btn btn-secondary">See it in action</a>
+        </div>
+        <div class="hero-meta" aria-label="Extension details">
+          <span>Manifest V3</span>
+          <span aria-hidden="true">·</span>
+          <span>MIT License</span>
+          <span aria-hidden="true">·</span>
+          <span>No tracking</span>
+        </div>
+      </div>
+      <div class="hero-screenshot">
+        <img
+          src="images/daytime.jpg"
+          alt="Quiet New Tab extension showing a clear blue daytime sky with the sun overhead, a large real-time clock reading the current time, and a minimal search bar"
+          width="1200"
+          height="750"
+          loading="eager"
+          fetchpriority="high"
+        >
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features" aria-labelledby="features-heading">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-eyebrow">Features</p>
+          <h2 id="features-heading">Everything you need,<br>nothing you don't</h2>
+          <p class="section-subtitle">A minimal, purposeful new tab that respects your attention and your privacy.</p>
+        </div>
+        <div class="features-grid" role="list">
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">🌅</div>
+            <h3>Live Solar Sky</h3>
+            <p>A dynamically rendered sky that follows the real sun's position, with accurate sunrise and sunset colors and smooth transitions throughout the day.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">🕐</div>
+            <h3>Real-Time Clock</h3>
+            <p>A large, beautifully readable clock front and center. Toggle between 12-hour and 24-hour formats to match your preference.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">🔍</div>
+            <h3>Clean Search Bar</h3>
+            <p>Press <kbd>/</kbd> to search. Switch between Google, DuckDuckGo, and more with <kbd>Tab</kbd>. No clutter, just results.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">📊</div>
+            <h3>Sun Chart</h3>
+            <p>An interactive altitude chart shows the sun's arc for the day — with sunrise time, sunset time, and total daylight hours at a glance.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">⏳</div>
+            <h3>Time Explorer</h3>
+            <p>Scrub through the day with a timeline slider to preview the sky at any time. Watch dawn break or dusk settle — on demand.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">☁️</div>
+            <h3>Live Clouds</h3>
+            <p>Optional real-time cloud layer drawn from weather data via the Open-Meteo API. See actual cloud cover in your sky.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">📍</div>
+            <h3>Location Aware</h3>
+            <p>Search for a city or use device geolocation for accurate sun positioning wherever you are in the world.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">🔒</div>
+            <h3>Private &amp; Minimal</h3>
+            <p>No tracking or analytics. City search and optional weather data come directly from Open-Meteo.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Showcase Section -->
+    <section class="showcase-section" id="showcase" aria-labelledby="showcase-heading">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-eyebrow">Showcase</p>
+          <h2 id="showcase-heading">A sky for every moment</h2>
+          <p class="section-subtitle">The extension paints a different sky throughout the day — accurate to your location, beautiful at every hour.</p>
+        </div>
+        <div class="showcase-grid">
+          <figure class="showcase-card showcase-card--large">
+            <img
+              src="images/daytime.jpg"
+              alt="Quiet New Tab during daytime showing a clear bright blue sky with the sun high overhead, casting warm light on the minimal interface"
+              width="800"
+              height="500"
+              loading="lazy"
+            >
+            <figcaption>
+              <span class="showcase-time" aria-hidden="true">☀️</span>
+              <strong>Daytime</strong>
+              <span>Clear blue sky with the sun overhead</span>
+            </figcaption>
+          </figure>
+          <figure class="showcase-card">
+            <img
+              src="images/dawn.jpg"
+              alt="Quiet New Tab at dawn showing the first light of day with soft pink and orange hues on the horizon before sunrise"
+              width="800"
+              height="500"
+              loading="lazy"
+            >
+            <figcaption>
+              <span class="showcase-time" aria-hidden="true">🌅</span>
+              <strong>Dawn</strong>
+              <span>First light before sunrise</span>
+            </figcaption>
+          </figure>
+          <figure class="showcase-card">
+            <img
+              src="images/golden-hour.jpg"
+              alt="Quiet New Tab during golden hour showing warm amber and orange tones as the sun nears the horizon"
+              width="800"
+              height="500"
+              loading="lazy"
+            >
+            <figcaption>
+              <span class="showcase-time" aria-hidden="true">🌇</span>
+              <strong>Golden Hour</strong>
+              <span>Warm tones as the sun nears the horizon</span>
+            </figcaption>
+          </figure>
+          <figure class="showcase-card">
+            <img
+              src="images/dusk.jpg"
+              alt="Quiet New Tab at dusk showing deep purple and blue twilight tones after the sun has set"
+              width="800"
+              height="500"
+              loading="lazy"
+            >
+            <figcaption>
+              <span class="showcase-time" aria-hidden="true">🌆</span>
+              <strong>Dusk</strong>
+              <span>Last light after sunset</span>
+            </figcaption>
+          </figure>
+          <figure class="showcase-card">
+            <img
+              src="images/night.jpg"
+              alt="Quiet New Tab at night showing a deep dark sky with subtle star-like elements and a clean white clock"
+              width="800"
+              height="500"
+              loading="lazy"
+            >
+            <figcaption>
+              <span class="showcase-time" aria-hidden="true">🌙</span>
+              <strong>Night</strong>
+              <span>Deep dark sky under the stars</span>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="usecases-section" id="use-cases" aria-labelledby="usecases-heading">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-eyebrow">Use Cases</p>
+          <h2 id="usecases-heading">Built for how you browse</h2>
+          <p class="section-subtitle">Whether you're a student, remote worker, or privacy advocate — Quiet New Tab fits right in.</p>
+        </div>
+        <div class="usecases-grid" role="list">
+          <article class="usecase-card" role="listitem">
+            <div class="usecase-icon" aria-hidden="true">🧘</div>
+            <h3>Mindful Browsing</h3>
+            <p>Replace the cluttered default new tab with a calming, distraction-free space that gently connects you to the natural rhythm of the day.</p>
+          </article>
+          <article class="usecase-card" role="listitem">
+            <div class="usecase-icon" aria-hidden="true">⏰</div>
+            <h3>Time Awareness</h3>
+            <p>Glance at a beautiful, always-accurate clock with a personalized greeting every time you open a new tab.</p>
+          </article>
+          <article class="usecase-card" role="listitem">
+            <div class="usecase-icon" aria-hidden="true">🌍</div>
+            <h3>Remote Workers &amp; Travelers</h3>
+            <p>Stay connected to local sunrise and sunset times wherever you are by searching for a city.</p>
+          </article>
+          <article class="usecase-card" role="listitem">
+            <div class="usecase-icon" aria-hidden="true">📚</div>
+            <h3>Students &amp; Focused Work</h3>
+            <p>A minimal new tab with just a search bar — no news feeds, no trending articles, no distractions pulling you away from what matters.</p>
+          </article>
+          <article class="usecase-card" role="listitem">
+            <div class="usecase-icon" aria-hidden="true">🎨</div>
+            <h3>Aesthetic Desktop</h3>
+            <p>Enjoy a live, ever-changing sky that transitions naturally through dawn, daylight, golden hour, dusk, and night — like a window to the outside.</p>
+          </article>
+          <article class="usecase-card" role="listitem">
+            <div class="usecase-icon" aria-hidden="true">🔒</div>
+            <h3>Privacy-First Users</h3>
+            <p>No tracking, no analytics, no data leaves your device. Your location is only used locally for sun calculations — nothing is shared.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install Section -->
+    <section class="install-section" id="install" aria-labelledby="install-heading">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-eyebrow">Get Started</p>
+          <h2 id="install-heading">Install in under a minute</h2>
+        </div>
+        <div class="install-steps" role="list">
+          <div class="install-step" role="listitem">
+            <span class="step-number" aria-hidden="true">1</span>
+            <div>
+              <h3>Clone or download</h3>
+              <p>Get the source from <a href="https://github.com/Mo-Shakib/quiet-tab" target="_blank" rel="noopener noreferrer">GitHub</a> or download as a ZIP.</p>
+            </div>
+          </div>
+          <div class="install-step" role="listitem">
+            <span class="step-number" aria-hidden="true">2</span>
+            <div>
+              <h3>Open Chrome Extensions</h3>
+              <p>Navigate to <code>chrome://extensions</code> and enable <strong>Developer mode</strong>.</p>
+            </div>
+          </div>
+          <div class="install-step" role="listitem">
+            <span class="step-number" aria-hidden="true">3</span>
+            <div>
+              <h3>Load unpacked</h3>
+              <p>Click <strong>Load unpacked</strong> and select the project folder.</p>
+            </div>
+          </div>
+          <div class="install-step" role="listitem">
+            <span class="step-number" aria-hidden="true">4</span>
+            <div>
+              <h3>Open a new tab</h3>
+              <p>That's it. Your new tab is now a live solar sky. Enjoy.</p>
+            </div>
+          </div>
+        </div>
+        <div class="install-cta">
+          <a href="https://github.com/Mo-Shakib/quiet-tab" class="btn btn-primary btn-large" target="_blank" rel="noopener noreferrer">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section (AEO-optimized for AI & voice search answer extraction) -->
+    <section class="faq-section" id="faq" aria-labelledby="faq-heading">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-eyebrow">FAQ</p>
+          <h2 id="faq-heading">Frequently asked questions</h2>
+          <p class="section-subtitle">Quick answers to the most common questions about Quiet New Tab.</p>
+        </div>
+        <div class="faq-list" itemscope itemtype="https://schema.org/FAQPage">
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question" open>
+            <summary itemprop="name">What is Quiet New Tab?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Quiet New Tab is a free, open-source Chrome extension that replaces the default new tab page with a calm, minimal interface. It features a <strong>live solar sky</strong> that tracks the real sun's position throughout the day, a large <strong>real-time clock</strong>, and a <strong>clean search bar</strong> — with zero distractions, ads, or news feeds.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">Is Quiet New Tab free to use?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Yes, Quiet New Tab is completely free and open source under the <strong>MIT License</strong>. There are no hidden charges, premium tiers, or in-app purchases. You can download the source code from <a href="https://github.com/Mo-Shakib/quiet-tab" target="_blank" rel="noopener noreferrer">GitHub</a>, inspect it, and even contribute.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">Does this extension track my data or location?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p><strong>No.</strong> Quiet New Tab has no analytics, telemetry, or third-party tracking. City searches and optional cloud requests are sent directly to Open-Meteo; settings are saved in your browser.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">How do I install Quiet New Tab on Chrome?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Installing Quiet New Tab takes under a minute:</p>
+                <ol>
+                  <li>Download or clone the repository from <a href="https://github.com/Mo-Shakib/quiet-tab" target="_blank" rel="noopener noreferrer">GitHub</a>.</li>
+                  <li>Open <code>chrome://extensions</code> in Chrome.</li>
+                  <li>Enable <strong>Developer mode</strong> using the toggle in the top-right corner.</li>
+                  <li>Click <strong>Load unpacked</strong> and select the downloaded project folder.</li>
+                  <li>Open a new tab — you'll see the live solar sky immediately.</li>
+                </ol>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">Does the sky change in real time?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Yes. The sky is rendered dynamically based on the <strong>actual solar position</strong> for your selected city or device location. It transitions smoothly through dawn, daytime, golden hour, dusk, and night. You can also use the <strong>Time Explorer</strong> slider to preview the sky at any time of day.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">Can I use it with a custom location?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Absolutely. Quiet New Tab supports both <strong>device geolocation</strong> and <strong>city search</strong>. Open the settings panel (⚙️ button), search for a city, and select it to localize the sky.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">What search engines does it support?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Quiet New Tab supports multiple search engines including <strong>Google</strong>, <strong>DuckDuckGo</strong>, and others. Press <kbd>/</kbd> to focus the search bar, type your query, and hit Enter. Press <kbd>Tab</kbd> to cycle between available search engines.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">Does it work on Firefox or other browsers?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Quiet New Tab is currently built as a <strong>Chrome extension</strong> using Manifest V3. It works on all Chromium-based browsers, including <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong>, <strong>Brave</strong>, and <strong>Opera</strong>. Firefox support may be added in the future.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">What are live clouds and how do they work?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>When the <strong>Live Clouds</strong> setting is enabled, Quiet New Tab fetches real-time cloud cover data from the free <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo API</a> and renders cloud layers on the sky. This gives you a subtle, accurate visual sense of current weather conditions — without needing a separate weather app.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <summary itemprop="name">Is the source code available?</summary>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <div itemprop="text">
+                <p>Yes. Quiet New Tab is fully open source and hosted on <a href="https://github.com/Mo-Shakib/quiet-tab" target="_blank" rel="noopener noreferrer">GitHub</a>. You're free to view, fork, modify, and contribute under the MIT License. Contributions and feedback are welcome.</p>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon" aria-hidden="true">☀️</span>
+        <span>Quiet New Tab</span>
+      </div>
+      <p class="footer-credit">Developed by <a href="https://github.com/Mo-Shakib" target="_blank" rel="noopener noreferrer">Shakib</a></p>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="https://github.com/Mo-Shakib/quiet-tab" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/Mo-Shakib/quiet-tab/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        <a href="https://github.com/Mo-Shakib" target="_blank" rel="noopener noreferrer">@Mo-Shakib</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
