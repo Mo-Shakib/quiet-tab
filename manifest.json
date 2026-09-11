@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Quiet New Tab",
+  "version": "1.0.0",
+  "description": "A quiet new tab with a live solar sky, sunrise and sunset times, and an interactive day timeline.",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "geolocation"
+  ],
+  "host_permissions": [
+    "https://api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*"
+  ]
+}

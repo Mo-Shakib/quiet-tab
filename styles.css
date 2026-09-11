@@ -1,0 +1,423 @@
+:root {
+  color-scheme: dark;
+  --bg: #08090b;
+  --surface: rgba(22, 23, 27, .82);
+  --hover: #1d1e23;
+  --line: rgba(255, 255, 255, .085);
+  --line-strong: rgba(255, 255, 255, .15);
+  --text: #f5f5f7;
+  --muted: #92939b;
+  --quiet: #5e6069;
+  --accent: #b7c8ff;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  background: var(--bg);
+}
+
+* { box-sizing: border-box; }
+html, body { width: 100%; min-height: 100%; margin: 0; }
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  color: var(--text);
+  background: radial-gradient(circle at 50% 42%, rgba(89, 103, 145, .1), transparent 33rem), linear-gradient(145deg, #0b0c0f, var(--bg) 52%, #090a0d);
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; }
+button { color: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid rgba(183, 200, 255, .7); outline-offset: 3px; }
+.ambient { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.ambient::before { content: ""; position: absolute; width: min(72vw, 900px); aspect-ratio: 1; left: 50%; top: 38%; translate: -50% -50%; border-radius: 50%; background: radial-gradient(circle, rgba(144, 163, 218, .075), transparent 65%); filter: blur(24px); }
+
+.topbar, footer { position: relative; z-index: 2; display: flex; align-items: center; justify-content: flex-end; padding: 22px clamp(22px, 4vw, 56px); }
+.topbar { opacity: 0; transition: opacity 400ms var(--ease); }
+.topbar:hover, .topbar:focus-within { opacity: 1; }
+.date-pill, .keyboard-tip { display: inline-flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 11px; background: rgba(18, 19, 23, .55); color: var(--muted); font-size: 12px; font-weight: 550; letter-spacing: .01em; backdrop-filter: blur(14px); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #77d49b; box-shadow: 0 0 0 4px rgba(119, 212, 155, .08), 0 0 12px rgba(119, 212, 155, .35); }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+.keyboard-tip { gap: 7px; margin-right: 2px; }
+kbd { min-width: 24px; padding: 3px 6px; border: 1px solid rgba(255, 255, 255, .11); border-radius: 6px; color: #c9cad0; background: rgba(255, 255, 255, .055); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .06); font: 500 10px ui-monospace, SFMono-Regular, Menlo, monospace; text-align: center; }
+.icon-button { width: 36px; height: 36px; padding: 0; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 12px; background: rgba(18, 19, 23, .58); color: #9b9ca4; cursor: pointer; transition: transform 180ms var(--ease), color 180ms, background 180ms, border-color 180ms; backdrop-filter: blur(14px); }
+.icon-button svg { width: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.icon-button:hover { color: var(--text); background: var(--hover); border-color: var(--line-strong); transform: translateY(-1px); }
+.icon-button:active { transform: scale(.96); }
+
+.main-content { position: relative; z-index: 1; width: min(100% - 40px, 760px); margin: auto; padding: clamp(42px, 8vh, 88px) 0 70px; }
+.hero { text-align: center; margin-bottom: 34px; animation: enter 650ms var(--ease) both; }
+.clock-row { display: flex; align-items: flex-end; justify-content: center; gap: 10px; }
+h1 { margin: 0; font-size: clamp(64px, 9vw, 96px); font-weight: 590; line-height: .93; letter-spacing: -.065em; font-variant-numeric: tabular-nums; text-shadow: 0 3px 32px rgba(255,255,255,.06); }
+.period { margin-bottom: 9px; color: var(--quiet); font-size: 12px; font-weight: 650; letter-spacing: .08em; }
+.greeting { margin: 17px 0 0; color: var(--muted); font-size: 15px; letter-spacing: .005em; }
+
+.search-section { position: relative; animation: enter 650ms 80ms var(--ease) both; }
+.search-shell { height: 66px; display: flex; align-items: center; padding: 7px 8px; border: 1px solid rgba(255,255,255,.11); border-radius: 20px; background: rgba(22, 23, 28, .76); box-shadow: 0 18px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035); backdrop-filter: blur(24px) saturate(125%); transition: border-color 220ms, box-shadow 220ms, background 220ms; }
+.search-shell:focus-within { border-color: rgba(183, 200, 255, .34); background: rgba(25, 26, 31, .9); box-shadow: 0 22px 75px rgba(0,0,0,.38), 0 0 0 4px rgba(145, 166, 232, .055), inset 0 1px 0 rgba(255,255,255,.05); }
+.engine-picker { position: relative; height: 100%; }
+.engine-button { height: 100%; max-width: 150px; display: flex; align-items: center; gap: 9px; padding: 0 11px; border: 0; border-radius: 13px; background: transparent; cursor: pointer; transition: background 160ms; }
+.engine-button:hover { background: rgba(255,255,255,.055); }
+.engine-icon { width: 19px; height: 19px; display: grid; place-items: center; flex: 0 0 auto; }
+.engine-logo { width: 18px; height: 18px; display: block; flex: 0 0 auto; }
+.engine-name { color: #cacbd0; font-size: 13px; font-weight: 590; white-space: nowrap; }
+.chevron { width: 14px; fill: none; stroke: var(--quiet); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform 180ms var(--ease); }
+.engine-button[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+.engine-menu { position: absolute; z-index: 10; top: calc(100% + 13px); left: 0; width: 224px; padding: 8px; border: 1px solid var(--line-strong); border-radius: 17px; background: rgba(25, 26, 30, .94); box-shadow: 0 24px 70px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.04); backdrop-filter: blur(28px) saturate(130%); animation: menu-in 180ms var(--ease) both; }
+.menu-label { margin: 6px 9px 8px; color: var(--quiet); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.engine-option { width: 100%; height: 40px; display: flex; align-items: center; gap: 11px; padding: 0 10px; border: 0; border-radius: 11px; color: #aaaab2; background: transparent; cursor: pointer; font-size: 13px; text-align: left; }
+.engine-option:hover { color: white; background: rgba(255,255,255,.055); }
+.engine-option[aria-selected="true"] { color: white; background: rgba(255,255,255,.075); }
+.engine-option .check { margin-left: auto; color: var(--accent); }
+.search-divider { width: 1px; height: 25px; margin: 0 14px 0 7px; background: var(--line); }
+.search-icon { width: 19px; flex: 0 0 auto; margin-right: 10px; fill: none; stroke: #686a72; stroke-width: 1.7; stroke-linecap: round; }
+#search-input { min-width: 0; flex: 1; height: 100%; padding: 0; border: 0; outline: 0; color: #f2f2f4; background: transparent; caret-color: var(--accent); font-size: 16px; letter-spacing: -.01em; }
+#search-input::placeholder { color: #666871; opacity: 1; }
+.clear-button, .submit-button { width: 40px; height: 40px; flex: 0 0 auto; display: grid; place-items: center; border: 0; border-radius: 12px; cursor: pointer; }
+.clear-button { background: transparent; color: #74767e; }
+.clear-button:hover { color: white; background: rgba(255,255,255,.05); }
+.clear-button svg { width: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.submit-button { margin-left: 3px; background: #f0f0f3; color: #111216; transition: transform 160ms var(--ease), background 160ms; }
+.submit-button:hover { background: white; transform: translateX(1px); }
+.submit-button:active { transform: scale(.95); }
+.submit-button svg { width: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.search-hint { display: flex; align-items: center; justify-content: center; gap: 7px; margin: 12px 0 0; color: #555760; font-size: 11px; }
+.search-hint span { width: 2px; height: 2px; border-radius: 50%; background: #4b4d55; margin: 0 3px; }
+.search-hint kbd { padding: 2px 5px; color: #71737c; background: transparent; }
+
+footer { color: #464850; font-size: 11px; }
+footer button { padding: 4px; border: 0; color: #696b74; background: transparent; cursor: pointer; font-size: 11px; transition: color 160ms; }
+footer button:hover { color: #c5c6cb; }
+
+.modal { width: 100%; max-width: 430px; padding: 0; border: 0; overflow: visible; color: var(--text); background: transparent; content-visibility: auto; }
+.modal::backdrop { background: rgba(3,4,6,.73); backdrop-filter: blur(10px); animation: fade-in 180ms both; }
+.modal[open] .modal-card { animation: modal-in 240ms var(--ease) both; }
+.modal-card { display: flex; flex-direction: column; gap: 9px; padding: 24px; border: 1px solid var(--line-strong); border-radius: 24px; background: rgba(24, 25, 29, .97); box-shadow: 0 35px 100px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.04); }
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 13px; }
+.modal-header h2 { margin: 2px 0 0; font-size: 20px; font-weight: 620; letter-spacing: -.03em; }
+.eyebrow { margin: 0; color: var(--quiet); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.modal-close { margin: -5px -5px 0 0; background: rgba(255,255,255,.035); }
+.modal label, .name-setting > label { color: #898b93; font-size: 11px; font-weight: 620; }
+.modal input[type="text"] { width: 100%; height: 43px; margin-bottom: 8px; padding: 0 13px; border: 1px solid var(--line); border-radius: 12px; outline: 0; color: white; background: rgba(8,9,11,.45); font-size: 13px; transition: border-color 160ms, box-shadow 160ms; }
+.modal input[type="text"]:focus { border-color: rgba(183,200,255,.36); box-shadow: 0 0 0 3px rgba(145,166,232,.06); }
+.modal input::placeholder { color: #50525a; }
+.primary-button { height: 38px; padding: 0 15px; border-radius: 11px; cursor: pointer; font-size: 12px; font-weight: 620; }
+.primary-button { border: 0; color: #111216; background: #f0f0f3; }
+.primary-button:hover { background: white; }
+.settings-list { display: flex; flex-direction: column; gap: 9px; }
+.setting-row, .name-setting { padding: 13px; border: 1px solid rgba(255,255,255,.055); border-radius: 14px; background: rgba(255,255,255,.025); }
+.setting-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.setting-row strong, .name-setting > label { display: block; color: #d3d4d8; font-size: 13px; font-weight: 570; }
+.setting-row small, .name-setting small { display: block; margin-top: 3px; color: #64666e; font-size: 10px; font-weight: 450; }
+.switch { position: relative; width: 39px; height: 23px; flex: 0 0 auto; margin-left: 14px; }
+.switch input { position: absolute; opacity: 0; }
+.switch span { position: absolute; inset: 0; border-radius: 99px; background: #383940; transition: background 180ms; }
+.switch span::after { content: ""; position: absolute; width: 19px; height: 19px; left: 2px; top: 2px; border-radius: 50%; background: #d9d9dd; box-shadow: 0 1px 5px rgba(0,0,0,.35); transition: transform 200ms var(--ease); }
+.switch input:checked + span { background: #7d91ca; }
+.switch input:checked + span::after { transform: translateX(16px); background: white; }
+.switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.name-setting > label { margin-bottom: 10px; }
+.inline-field { display: flex; gap: 8px; }
+.inline-field input[type="text"] { margin: 0; }
+.toast { position: fixed; z-index: 20; right: 24px; bottom: 24px; align-items: center; gap: 9px; padding: 11px 14px; border: 1px solid var(--line-strong); border-radius: 13px; color: #d8d9dd; background: rgba(28,29,34,.93); box-shadow: 0 18px 45px rgba(0,0,0,.45); backdrop-filter: blur(18px); font-size: 12px; animation: toast-in 230ms var(--ease) both; }
+.toast:not([hidden]) { display: flex; }
+.toast-check { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; color: #9ae3b5; background: rgba(99,202,137,.1); font-size: 10px; }
+
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-5px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+@media (max-width: 680px) {
+  .keyboard-tip { display: none; }
+  .main-content { width: min(100% - 28px, 760px); padding-top: 32px; }
+  .engine-name { display: none; }
+  .engine-button { gap: 5px; padding: 0 8px; }
+  .search-divider { margin-left: 4px; margin-right: 11px; }
+  .search-icon { display: none; }
+  footer span { display: none; }
+  footer { justify-content: center; }
+}
+@media (max-height: 720px) and (min-width: 681px) {
+  .main-content { padding-top: 20px; padding-bottom: 30px; }
+  .hero { margin-bottom: 25px; }
+  h1 { font-size: 67px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* A sky that follows the solar elevation, with a calm, readable foreground. */
+:root { --sky-top: #101a30; --sky-mid: #39495e; --sky-bottom: #b08069; --sun-x: 70%; --sun-y: 35%; --sun-opacity: .8; --sun-glow: .3; --sun-color: #ffe4ac; --muted: #b8becb; --quiet: #8993a6; }
+body { background: #0d1421; }
+.ambient { background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 65%, var(--sky-bottom) 100%); transition: background 1s; }
+.ambient::before { inset: 0; width: 100%; height: 100%; translate: none; border-radius: 0; background: linear-gradient(180deg, rgba(5,10,20,.12), rgba(5,10,20,.05) 35%, rgba(5,10,20,.62)); filter: none; z-index: 1; }
+.ambient::after { content: ''; position: absolute; inset: 0; opacity: .12; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' opacity='.35' d='M0 0h180v180H0z'/%3E%3C/svg%3E"); pointer-events:none; }
+.sky-sun { position: absolute; left: var(--sun-x); top: var(--sun-y); width: 62px; height: 62px; transform: translate(-50%, -50%); border-radius: 50%; opacity: var(--sun-opacity); background: var(--sun-color); box-shadow: 0 0 35px 12px var(--sun-color), 0 0 130px 65px rgba(255,192,117,var(--sun-glow)), 0 0 320px 160px rgba(255,201,135,var(--sun-glow)); transition: top 1s, left 1s, opacity 1s, box-shadow 1s; }
+.sky-horizon { position: absolute; bottom: 0; width: 100%; height: 20%; background: linear-gradient(0deg, #0a101d77, transparent); }
+.topbar { padding-top: 27px; }
+.date-pill, .keyboard-tip, .icon-button { background: #10192933; border-color: #ffffff18; color: #d0d6df; }
+.main-content { width: min(100% - 40px, 680px); padding: 36px 0 30px; }
+.sky-heading { text-align:center; margin-bottom: 25px; display:flex; flex-direction:column; gap:10px; }
+.sky-heading .eyebrow { color:#c6ced6; font-size:9px; letter-spacing:.24em; }
+#sky-phase { color:#f2d5b3; font: italic 22px Georgia, serif; }
+h1 { font-size:clamp(76px, 10vw, 112px); font-weight:350; letter-spacing:-.065em; }
+.period { color:#c3cbd7; }
+.hero { margin-bottom:28px; }
+.greeting { color:#d0d4dd; font-size:14px; }
+.search-shell { background:#10192770; border-color:#ffffff26; border-radius:18px; height:60px; box-shadow:0 14px 40px #02060d20; }
+.search-shell:focus-within { background:#101927b8; }
+#search-input::placeholder { color:#b2b8c5; }
+.search-hint { color:#b2bac8; }
+.search-hint kbd { color:#cbd1db; }
+.search-section { z-index:3; }
+.solar-panel { margin:29px auto 0; padding:18px 22px 12px; border:1px solid #ffffff20; border-radius:18px; background:linear-gradient(125deg,#17243755,#10172588); backdrop-filter:blur(22px); box-shadow:0 20px 70px #00000012; contain:layout style; }
+.solar-header { display:flex; align-items:center; justify-content:space-between; gap:15px; }
+.solar-header .eyebrow { color:#aeb9cb; font-size:9px; letter-spacing:.17em; }
+.solar-header p { margin:8px 0 0; font-size:13px; color:#e3e5eb; }
+.live-button { display:flex; align-items:center; gap:7px; border:1px solid #ffffff25; border-radius:20px; background:#ffffff08; color:#d6e5d9; padding:8px 11px; font-size:10px; cursor:pointer; white-space:nowrap; }
+.live-button > span:first-child { width:5px; height:5px; border-radius:50%; background:#b0d5b1; box-shadow:0 0 9px #b0d5b155; }
+.live-button[data-preview="true"] { color:#ffe0a3; border-color:#ffe0a355; }
+.live-button[data-preview="true"] > span:first-child { background:#ffe0a3; }
+.sun-chart { position:relative; height:96px; margin-top:8px; }
+.sun-chart svg { width:100%; height:100%; overflow:visible; }
+.horizon-line { stroke:#ffffff24; stroke-dasharray:3 5; }
+#solar-path { fill:none; stroke:url(#path-gradient); stroke-width:1.6; }
+#sun-guide { stroke:#ffe6be44; stroke-width:1; stroke-dasharray:2 4; }
+#chart-sun { fill:#fff0c9; filter:drop-shadow(0 0 5px #ffda8a); }
+#chart-sun-halo { fill:#ffe6be13; stroke:#ffe6be20; }
+.horizon-label { position:absolute; right:0; top:59%; color:#a9b5c9; font-size:7px; letter-spacing:.15em; background:#253040; padding:2px 0 2px 6px; }
+.solar-stats { display:flex; align-items:center; justify-content:space-between; margin:2px 0 12px; }
+.solar-stats > div { display:flex; flex-direction:column; gap:7px; }
+.solar-stats > div:last-child { text-align:right; }
+.stat-label { color:#bdc5d3; font-size:10px; }
+.solar-stats strong { font-size:18px; font-weight:450; font-variant-numeric:tabular-nums; letter-spacing:-.025em; }
+.daylight-stat { text-align:center; }
+.daylight-stat strong { color:#d3d9e2; font-size:14px; }
+.time-explorer { border-top:1px solid #ffffff15; padding-top:10px; }
+.explorer-heading { display:flex; justify-content:flex-end; color:#c9d0dc; font-size:10px; }
+#preview-time { color:#f6dfbd; }
+#time-slider { appearance:none; width:100%; height:4px; display:block; margin:10px 0 8px; border-radius:9px; background:linear-gradient(90deg,#343b63,#a8819b 23%,#e4c18e 38%,#f4dfa8 50%,#d3a578 70%,#786a95 83%,#343b63); cursor:ew-resize; }
+#time-slider::-webkit-slider-thumb { appearance:none; width:13px; height:13px; border:3px solid #fff2dc; border-radius:50%; background:#a08e7c; box-shadow:0 0 0 4px #ffffff0a; }
+#time-slider::-moz-range-thumb { width:9px; height:9px; border:3px solid #fff2dc; border-radius:50%; background:#a08e7c; }
+.timeline-labels { display:flex; justify-content:space-between; font-size:8px; color:#a9b5c9; }
+.solar-meta { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-top:12px; font-size:9px; color:#bcc7d7; }
+.solar-meta button { border:0; background:none; padding:0; color:#d4dbe7; font-size:10px; cursor:pointer; }
+.solar-meta button:hover { color:white; }
+#location-note { margin:9px 0 0; color:#a3afc1; font-size:9px; line-height:1.5; }
+footer, footer button { color:#afb9c8; }
+[hidden] { display:none !important; }
+@media (max-width:680px) { .main-content { padding-top:20px; } .solar-panel { padding:20px 18px 14px; } .sky-heading { margin-bottom:20px; } .solar-meta { flex-wrap:wrap; } .daylight-stat strong { font-size:12px; } .solar-stats strong { font-size:16px; } }
+@media (max-height:800px) and (min-width:681px) { .main-content { padding-top:12px; } .sky-heading { margin-bottom:16px; } .sky-heading .eyebrow { display:none; } h1 { font-size:78px; } .solar-panel { margin-top:22px; } .sun-chart { height:86px; } }
+
+.horizon-label { top:52%; }
+@media (max-height:800px) and (min-width:681px) { .topbar { padding-top:18px; padding-bottom:15px; } .solar-panel { padding-top:18px; } .solar-stats { margin-bottom:14px; } .solar-meta { margin-top:14px; } .main-content { padding-bottom:12px; } footer { padding-top:14px; padding-bottom:14px; } }
+
+.sky-sun { transition: top 1s, left 1s, opacity 1s, box-shadow 1s, background 1s, width 1s, height 1s; }
+#chart-sun { fill:var(--sun-color); }
+.modal { max-height:calc(100svh - 32px); overflow-y:auto; border-radius:24px; }
+.location-setting { border:1px solid #ffffff12; border-radius:14px; padding:13px; background:#ffffff06; }
+.location-setting h3 { font-size:13px; font-weight:570; margin:0 0 14px; }
+.location-setting select, .location-setting input[type="search"] { width:100%; min-width:0; color:#eee; background:#11151c; border:1px solid #ffffff24; border-radius:9px; padding:10px; margin:6px 0 12px; font:inherit; font-size:12px; }
+.location-setting .inline-field { align-items:center; }
+.location-setting .inline-field button { white-space:nowrap; }
+.location-setting p { color:#a8b2c2; font-size:11px; line-height:1.5; }
+#location-settings-status:empty { display:none; }
+.sun-size-label { display:flex; justify-content:space-between; margin-top:17px; }
+#sun-size-scale { width:100%; margin:12px 0 0; accent-color:#f0c698; cursor:pointer; }
+.location-setting .sun-setting-note { font-size:10px; margin-bottom:0; }
+
+/* Emissive sphere: a textured photosphere with limb darkening. */
+.ambient .sky-sun {
+  background: transparent;
+  box-shadow: none;
+  --sun-edge: color-mix(in srgb, var(--sun-body, var(--sun-color)) 62%, #f06a1d);
+}
+.sun-sphere {
+  position: absolute; inset: 0; overflow: hidden; border-radius: 50%;
+  background: radial-gradient(circle at 43% 40%, var(--sun-core, #fffbe3) 0%, var(--sun-body, var(--sun-color)) 42%, color-mix(in srgb, var(--sun-body, var(--sun-color)) 78%, #ffae32) 74%, var(--sun-edge) 100%);
+  box-shadow: 0 0 3px 1px #fff3c9c0, 0 0 18px 5px color-mix(in srgb, var(--sun-body, var(--sun-color)) 70%, transparent), 0 0 55px 16px rgba(255,176,83,.25), 0 0 130px 46px rgba(255,192,117,var(--sun-glow));
+  isolation: isolate;
+}
+.sun-sphere::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(circle at 48% 46%, #fffbd733 0%, transparent 46%, #a9380929 79%, #75220866 100%);
+  box-shadow: inset 0 0 3px #ffe9b8aa;
+}
+.sun-plasma, .sun-granules { position: absolute; inset: -35%; border-radius: 50%; }
+.sun-plasma {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.055 .08' numOctaves='4' seed='12'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='gamma' amplitude='1.4' exponent='2.2' offset='0'/%3E%3CfeFuncG type='gamma' amplitude='1.4' exponent='2.2' offset='0'/%3E%3CfeFuncB type='gamma' amplitude='1.4' exponent='2.2' offset='0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Cpath d='M0 0h180v180H0z' filter='url(%23p)'/%3E%3C/svg%3E");
+  background-size: 100% 100%; mix-blend-mode: multiply; opacity: .32;
+  animation: solar-rotation 95s linear infinite;
+}
+.sun-granules {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='.38' numOctaves='3' seed='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath d='M0 0h160v160H0z' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 100% 100%; mix-blend-mode: soft-light; opacity: .8;
+  animation: solar-rotation 140s linear infinite reverse;
+}
+@keyframes solar-rotation { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sun-plasma, .sun-granules { animation: none; } }
+
+/* One solar light state drives the entire interface. Keep contrast stable as hues change. */
+:root { --ui-hue:210; --ui-saturation:40%; --ui-lightness:18%; --ui-accent:#e3f2ff; --light-strength:.15; --shadow-x:0px; --shadow-y:20px; --light-x:50vw; --light-y:15vh; --halo-size:260px; }
+body { --accent:var(--ui-accent); --text:color-mix(in srgb,var(--ui-accent) 20%,#fff); --muted:color-mix(in srgb,var(--ui-accent) 28%,#b5bac4); --quiet:color-mix(in srgb,var(--ui-accent) 20%,#949eae); --line:color-mix(in srgb,var(--ui-accent) 13%,transparent); --line-strong:color-mix(in srgb,var(--ui-accent) 25%,transparent); color:var(--text); }
+.sky-light { position:absolute; inset:0; background:radial-gradient(ellipse var(--halo-size) calc(var(--halo-size) * .7) at var(--light-x) var(--light-y),color-mix(in srgb,var(--sun-color) 13%,transparent),transparent 100%); opacity:var(--sun-opacity); }
+.ambient { background:radial-gradient(ellipse at var(--light-x) 80%,color-mix(in srgb,var(--ui-accent) 12%,transparent),transparent 70%),linear-gradient(180deg,var(--sky-top),var(--sky-mid) 65%,var(--sky-bottom)); }
+.search-shell, .solar-panel, .date-pill, .keyboard-tip, .icon-button {
+  background:linear-gradient(120deg,color-mix(in srgb,var(--ui-accent) 6%,transparent),transparent 65%),hsla(var(--ui-hue),var(--ui-saturation),var(--ui-lightness),.82);
+  border-color:var(--line-strong);
+  box-shadow:var(--shadow-x) var(--shadow-y) 50px #00000024,inset 0 1px 0 color-mix(in srgb,var(--ui-accent) 12%,transparent);
+  transition:background 1s,border-color 1s,box-shadow 1s,color 1s;
+}
+.search-shell:focus-within { border-color:color-mix(in srgb,var(--ui-accent) 50%,transparent); background:hsla(var(--ui-hue),var(--ui-saturation),var(--ui-lightness),.94); box-shadow:var(--shadow-x) var(--shadow-y) 55px #00000035,0 0 0 4px color-mix(in srgb,var(--ui-accent) 7%,transparent); }
+.hero h1 { color:var(--text); text-shadow:var(--shadow-x) 5px 35px color-mix(in srgb,var(--ui-accent) 15%,transparent); }
+#sky-phase, #preview-time { color:var(--ui-accent); }
+.greeting, .period, .engine-name, .solar-header p, .solar-meta button, .daylight-stat strong { color:var(--muted); }
+.sky-heading .eyebrow, .solar-header .eyebrow, .stat-label, .solar-meta, .search-hint, .search-hint kbd, .timeline-labels, #location-note, footer, footer button { color:var(--muted); }
+#search-input { color:var(--text); caret-color:var(--ui-accent); }
+#search-input::placeholder, .search-icon, .chevron { color:var(--muted); }
+.search-icon, .chevron { stroke:var(--muted); }
+.submit-button, .primary-button { background:var(--ui-accent); color:#18202a; }
+.submit-button:hover, .primary-button:hover { background:color-mix(in srgb,var(--ui-accent) 70%,#fff); }
+.live-button, .live-button[data-preview="true"] { color:var(--ui-accent); border-color:var(--line-strong); background:color-mix(in srgb,var(--ui-accent) 5%,transparent); }
+.live-button > span:first-child, .live-button[data-preview="true"] > span:first-child, .status-dot { background:var(--ui-accent); box-shadow:0 0 10px color-mix(in srgb,var(--ui-accent) 35%,transparent); }
+#solar-path { stroke:var(--ui-accent); }
+#sun-guide, .horizon-line { stroke:color-mix(in srgb,var(--ui-accent) 25%,transparent); }
+#chart-sun { fill:var(--ui-accent); filter:drop-shadow(0 0 5px var(--ui-accent)); }
+#chart-sun-halo { fill:color-mix(in srgb,var(--ui-accent) 8%,transparent); stroke:var(--line); }
+.horizon-label { background:hsl(var(--ui-hue),var(--ui-saturation),var(--ui-lightness)); color:var(--muted); }
+#time-slider { background:var(--day-track); }
+#time-slider::-webkit-slider-thumb { border-color:var(--ui-accent); background:hsl(var(--ui-hue),var(--ui-saturation),var(--ui-lightness)); }
+#time-slider::-moz-range-thumb { border-color:var(--ui-accent); background:hsl(var(--ui-hue),var(--ui-saturation),var(--ui-lightness)); }
+.time-explorer, .setting-row, .name-setting, .location-setting { border-color:var(--line); }
+.modal-card, .engine-menu, .toast { background:hsl(var(--ui-hue),var(--ui-saturation),calc(var(--ui-lightness) + 2%)); border-color:var(--line-strong); color:var(--text); }
+.modal input[type="text"], .location-setting select, .location-setting input[type="search"] { background:hsla(var(--ui-hue),var(--ui-saturation),5%,.55); border-color:var(--line-strong); color:var(--text); }
+.modal label, .setting-row small, .name-setting small, .location-setting p, .eyebrow, .menu-label { color:var(--muted); }
+.setting-row strong, .name-setting > label, .engine-option { color:var(--text); }
+.switch input:checked + span { background:color-mix(in srgb,var(--ui-accent) 70%,#263248); }
+#sun-size-scale { accent-color:var(--ui-accent); }
+.sky-model-note { margin:10px 0 0; color:var(--muted); font-size:9px; }
+.sun-sphere { clip-path:inset(0 0 var(--sun-clip,0%) 0); }
+.sun-plasma { animation:none; transform:rotate(var(--plasma-rotation)); }
+.sun-granules { animation:none; transform:rotate(var(--plasma-rotation)); }
+@media (prefers-reduced-motion: reduce) { .search-shell, .solar-panel, .date-pill, .keyboard-tip, .icon-button { transition:none; } }
+
+.sky-sun::before { content:''; position:absolute; inset:-100%; border-radius:50%; background:radial-gradient(circle,color-mix(in srgb,var(--sun-color) 40%,transparent),transparent 62%); filter:blur(7px); opacity:var(--sun-opacity); }
+
+.sun-sphere { box-shadow:inset 0 0 2px #ffe9b888; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * The sky is the full viewport: one sunrise-to-sunset arc spans the device width,
+ * the horizon sits at --horizon-y, and three cloud decks are lit from wherever
+ * the sun happens to be. Every colour below is set from the solar/weather model.
+ */
+:root {
+  --horizon-y: 76svh;
+  --sky-ceiling: 8svh;
+  --sun-x: 50%;
+  --sun-height: .5;
+  --sun-scale: 1;
+  --sun-size: calc(clamp(84px, 8vw, 168px) * var(--sun-scale));
+  --halo-size: calc(240px + var(--sun-size) * 2.2);
+  --sun-top: calc(var(--horizon-y) - var(--sun-height) * (var(--horizon-y) - var(--sky-ceiling)));
+  --light-x: var(--sun-x);
+  --light-y: var(--sun-top);
+  --sky-glow: #ff9d5c;
+  --glow-strength: 0%;
+  --glow-core: #ffd9a0;
+  --glow-edge: #ff8f52;
+  --glow-belt: #d98ba8;
+  --afterglow: 0;
+  --cloud-lit: #fdfbf6;
+  --cloud-top: #e6ecf6;
+  --cloud-shade: #96a3ba;
+  --cloud-low: 0;
+  --cloud-mid: 0;
+  --cloud-high: 0;
+  --cloud-drift: 1;
+  --haze: 0;
+  /* Each mask is one 1600 px tile of stitched fractal noise. The filter region has
+   * to match the tile exactly, otherwise the noise repeats on a different period
+   * than the mask and leaves a seam down the sky. Softening is left to the CSS
+   * blur on the deck, which crosses tile edges and hides what remains. */
+  --cloud-mask-cirrus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='420'%3E%3Cdefs%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0022 .02' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 1 1 0 -1.25'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.2' intercept='-.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23000'/%3E%3Cstop offset='.32' stop-color='%23fff'/%3E%3Cstop offset='.7' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='1600' height='420' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='1600' height='420' filter='url(%23c)' mask='url(%23m)'/%3E%3C/svg%3E");
+  --cloud-mask-alto: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='420'%3E%3Cdefs%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.005 .013' numOctaves='5' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 1 1 0 -1.1'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.9' intercept='-.42'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23000'/%3E%3Cstop offset='.3' stop-color='%23fff'/%3E%3Cstop offset='.72' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='1600' height='420' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='1600' height='420' filter='url(%23c)' mask='url(%23m)'/%3E%3C/svg%3E");
+  --cloud-mask-cumulus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='460'%3E%3Cdefs%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0035 .009' numOctaves='6' seed='23' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 1 1 0 -1'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='3.6' intercept='-.62'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23000'/%3E%3Cstop offset='.26' stop-color='%23fff'/%3E%3Cstop offset='.74' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='1600' height='460' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='1600' height='460' filter='url(%23c)' mask='url(%23m)'/%3E%3C/svg%3E");
+}
+
+.ambient {
+  background:
+    radial-gradient(140vw 42svh at var(--sun-x) calc(var(--horizon-y) - 3svh), color-mix(in srgb, var(--sky-glow) var(--glow-strength), transparent), transparent 74%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 54%, var(--sky-bottom) 90%, color-mix(in srgb, var(--sky-bottom) 70%, #0a0c14) 100%);
+}
+.ambient::before { z-index: 0; background: linear-gradient(180deg, rgba(5,10,20,.1), transparent 30%, rgba(5,10,20,.3)); }
+.ambient::after { z-index: 10; opacity: .085; }
+
+.sky-afterglow {
+  position: absolute; inset: 0; z-index: 1; opacity: var(--afterglow);
+  transition: opacity 1.6s, background 1.2s;
+  background:
+    radial-gradient(46vw 22svh at var(--sun-x) calc(var(--horizon-y) - 2svh), color-mix(in srgb, var(--glow-core) 85%, transparent), transparent 72%),
+    radial-gradient(115vw 34svh at var(--sun-x) calc(var(--horizon-y) + 3svh), color-mix(in srgb, var(--glow-edge) 60%, transparent), transparent 76%),
+    linear-gradient(180deg, transparent 26%, color-mix(in srgb, var(--glow-belt) 32%, transparent) 56%, transparent 84%);
+}
+
+.ambient .sky-sun {
+  position: absolute; z-index: 2;
+  left: var(--sun-x); top: var(--sun-top);
+  width: var(--sun-size); height: var(--sun-size);
+  transform: translate(-50%, -50%);
+  transition: left 1s linear, top 1s linear, opacity 1.4s, width 1s, height 1s;
+}
+
+/* Thick cover is a lid, not a set of puffs, so a solid sheet fades in behind the
+ * decks as cover approaches overcast. */
+.cloud-sheet {
+  position: absolute; inset: 0 0 calc(100svh - var(--horizon-y) - 4svh); z-index: 2;
+  opacity: var(--cloud-sheet, 0);
+  background:
+    radial-gradient(70vw 34svh at var(--sun-x) var(--sun-top), color-mix(in srgb, var(--cloud-lit) 60%, transparent), transparent 76%),
+    linear-gradient(180deg, color-mix(in srgb, var(--cloud-shade) 45%, var(--cloud-top)) 0%, var(--cloud-shade) 62%, color-mix(in srgb, var(--cloud-shade) 80%, var(--cloud-top)) 100%);
+  transition: opacity 2.4s ease, background 1.2s;
+}
+
+/* Three drifting decks, each lit on top and shadowed underneath. They are one
+ * mask tile wider than the screen and travel exactly one tile per cycle, so the
+ * loop is invisible and the whole animation stays on the compositor. */
+.cloud-deck {
+  position: absolute; left: -1600px; width: calc(100% + 1600px);
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--cloud-top) 0%, color-mix(in srgb, var(--cloud-shade) 55%, var(--cloud-top)) 52%, var(--cloud-shade) 100%);
+  -webkit-mask-repeat: repeat-x; mask-repeat: repeat-x;
+  -webkit-mask-size: 1600px 100%; mask-size: 1600px 100%;
+  animation: cloud-drift linear infinite;
+  transition: opacity 2.4s ease, background 1.2s;
+  will-change: transform;
+}
+/* Sunlight lands on whichever clouds are passing the sun, so the warm patch
+ * stays put while the decks move through it. */
+.cloud-glow {
+  position: absolute; inset: 0; z-index: 6; pointer-events: none;
+  opacity: var(--cloud-glow, 0); mix-blend-mode: soft-light;
+  background: radial-gradient(50vw 30svh at var(--sun-x) var(--sun-top), color-mix(in srgb, var(--sun-color) 90%, transparent), transparent 74%);
+  transition: opacity 2s, background 1.2s;
+}
+.cloud-high { z-index: 3; top: 2svh; height: 30svh; opacity: calc(var(--cloud-high) * .5); filter: blur(3px); animation-duration: calc(300s / var(--cloud-drift)); -webkit-mask-image: var(--cloud-mask-cirrus); mask-image: var(--cloud-mask-cirrus); }
+.cloud-mid { z-index: 4; top: 15svh; height: 36svh; opacity: calc(var(--cloud-mid) * .72); filter: blur(5px); animation-duration: calc(200s / var(--cloud-drift)); -webkit-mask-image: var(--cloud-mask-alto); mask-image: var(--cloud-mask-alto); }
+.cloud-low { z-index: 5; top: 33svh; height: 48svh; opacity: calc(var(--cloud-low) * .92); filter: blur(7px); animation-duration: calc(135s / var(--cloud-drift)); -webkit-mask-image: var(--cloud-mask-cumulus); mask-image: var(--cloud-mask-cumulus); }
+@keyframes cloud-drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(1600px,0,0); } }
+
+.sky-haze {
+  position: absolute; inset: 0; z-index: 7; opacity: var(--haze);
+  transition: opacity 2s, background 1.2s;
+  background: linear-gradient(180deg, transparent 8%, color-mix(in srgb, var(--sun-color) 14%, #b9c6d8) 62%, color-mix(in srgb, var(--sun-color) 22%, #cdd8e4) 100%);
+}
+
+.sky-horizon {
+  z-index: 8; top: auto; bottom: 0; width: 100%;
+  height: calc(100svh - var(--horizon-y) + 7svh);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--sky-bottom) 40%, #05070d) 55%, color-mix(in srgb, var(--sky-bottom) 20%, #04060b));
+}
+.sky-light { z-index: 9; }
+
+@media (max-height: 800px) { :root { --horizon-y: 82svh; --sky-ceiling: 6svh; } }
+@media (prefers-reduced-motion: reduce) { .cloud-deck { animation: none; } }

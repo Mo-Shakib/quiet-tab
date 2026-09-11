@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>New Tab</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23181a20'/><rect x='6' y='6' width='20' height='20' rx='4' fill='none' stroke='%23b7c8ff' stroke-width='1.5'/><line x1='16' y1='11' x2='16' y2='21' stroke='%23b7c8ff' stroke-width='1.5' stroke-linecap='round'/><line x1='11' y1='16' x2='21' y2='16' stroke='%23b7c8ff' stroke-width='1.5' stroke-linecap='round'/></svg>">
+    <link rel="stylesheet" href="styles.css">
+    <script src="vendor/suncalc.js" defer></script>
+    <script src="solar-model.js" defer></script>
+    <script src="weather.js" defer></script>
+    <script src="app.js" defer></script>
+    <script src="solar.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true">
+      <div class="sky-afterglow"></div>
+      <div class="cloud-sheet"></div>
+      <div class="cloud-deck cloud-high"></div>
+      <div class="cloud-deck cloud-mid"></div>
+      <div class="cloud-deck cloud-low"></div>
+      <div class="cloud-glow"></div>
+      <div class="sky-haze"></div>
+      <div class="sky-horizon"></div>
+      <div class="sky-light"></div>
+    </div>
+    <header class="topbar">
+      <nav class="top-actions" aria-label="New tab actions">
+        <button class="icon-button" id="open-settings-trigger" type="button" aria-label="Open settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"></path><path d="M19.4 15a1.72 1.72 0 0 0 .34 1.9l.06.06-2.84 2.84-.06-.06a1.72 1.72 0 0 0-1.9-.34 1.72 1.72 0 0 0-1.05 1.58V21h-3.9v-.02A1.72 1.72 0 0 0 9 19.4a1.72 1.72 0 0 0-1.9.34l-.06.06-2.84-2.84.06-.06A1.72 1.72 0 0 0 4.6 15a1.72 1.72 0 0 0-1.58-1.05H3v-3.9h.02A1.72 1.72 0 0 0 4.6 9a1.72 1.72 0 0 0-.34-1.9l-.06-.06L7.04 4.2l.06.06A1.72 1.72 0 0 0 9 4.6a1.72 1.72 0 0 0 1.05-1.58V3h3.9v.02A1.72 1.72 0 0 0 15 4.6a1.72 1.72 0 0 0 1.9-.34l.06-.06 2.84 2.84-.06.06A1.72 1.72 0 0 0 19.4 9a1.72 1.72 0 0 0 1.58 1.05H21v3.9h-.02A1.72 1.72 0 0 0 19.4 15Z"></path></svg></button>
+      </nav>
+    </header>
+    <main class="main-content">
+      <div class="sky-heading"><span class="eyebrow">A LITTLE CLOSER TO THE OUTSIDE</span><span id="sky-phase">Daylight</span></div>
+      <section class="hero" aria-labelledby="clock-display">
+        <div class="clock-row"><h1 id="clock-display">00:00</h1><span id="period-display" class="period">AM</span></div>
+        <p id="greeting-display" class="greeting">Welcome back.</p>
+      </section>
+      <section class="search-section" aria-label="Web search">
+        <form id="search-form" class="search-shell">
+          <div class="engine-picker">
+            <button id="engine-dropdown-button" class="engine-button" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="current-engine-icon" class="engine-icon"></span><span id="current-engine-name" class="engine-name">Google</span><svg class="chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"></path></svg></button>
+            <div id="engine-menu" class="engine-menu" role="listbox" aria-label="Search engines" hidden><p class="menu-label">Search with</p><div id="engine-options-list"></div></div>
+          </div>
+          <span class="search-divider" aria-hidden="true"></span>
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+          <input id="search-input" type="text" inputmode="search" autocomplete="off" spellcheck="false" autofocus aria-label="Search or enter address" placeholder="Search Google or type a URL">
+          <button id="clear-search-btn" class="clear-button" type="button" aria-label="Clear search" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button>
+          <button class="submit-button" type="submit" aria-label="Search"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M12 6l4 4-4 4"></path></svg></button>
+        </form>
+        <p class="search-hint"><kbd>/</kbd> to focus <span></span> <kbd>Tab</kbd> to change engine</p>
+      </section>
+      <section class="solar-panel" aria-label="Today’s sunlight">
+        <div class="solar-header"><p id="solar-summary">Following the sun</p><button id="live-button" class="live-button" type="button"><span></span><span id="live-label">Live sky</span></button></div>
+        <div class="sun-chart"><svg id="sun-chart" viewBox="0 0 640 130" preserveAspectRatio="none" role="img" aria-label="Sun altitude throughout today"><defs><linearGradient id="path-gradient"><stop stop-color="#bc8dff"/><stop offset=".4" stop-color="#ffe0a3"/><stop offset=".7" stop-color="#ffe0a3"/><stop offset="1" stop-color="#bc8dff"/></linearGradient></defs><line x1="0" y1="73" x2="640" y2="73" class="horizon-line"/><path id="solar-path"/><line id="sun-guide" x1="320" y1="20" x2="320" y2="130"/><circle id="chart-sun-halo" r="13"/><circle id="chart-sun" r="4.5"/></svg></div>
+        <div class="solar-stats"><div><span class="stat-label">↗ Sunrise</span><strong id="sunrise-time">—</strong></div><div class="daylight-stat"><span class="stat-label">Daylight</span><strong id="daylight-duration">—</strong></div><div><span class="stat-label">↘ Sunset</span><strong id="sunset-time">—</strong></div></div>
+        <div class="time-explorer"><div class="explorer-heading"><output id="preview-time" for="time-slider">Now</output></div><input id="time-slider" type="range" min="0" max="1439" step="1" aria-label="Preview time of day"><div class="timeline-labels"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span></div></div>
+        <div class="solar-meta"><button id="location-button" type="button">◎ <span id="location-label">Enable local sun</span></button><span id="weather-readout" hidden>—</span></div>
+        <span id="light-level" hidden></span>
+        <p class="sky-model-note" id="sky-model-note" hidden></p>
+        <p id="location-note" hidden></p>
+      </section>
+    </main>
+    <footer><span>A quiet space. A changing sky.</span><button id="reset-trigger" type="button">Reset preferences</button></footer>
+
+    <dialog id="settings-modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-header"><div><p class="eyebrow">New tab</p><h2>Preferences</h2></div><button class="modal-close icon-button" type="button" data-close="settings-modal" aria-label="Close"><svg viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button></div>
+        <div class="settings-list">
+          <label class="setting-row" for="setting-24h"><span><strong>24-hour clock</strong><small>Use the compact 24-hour format</small></span><span class="switch"><input id="setting-24h" type="checkbox"><span></span></span></label>
+          <label class="setting-row" for="setting-target"><span><strong>Open in a new tab</strong><small>Keep this page open after searching</small></span><span class="switch"><input id="setting-target" type="checkbox"><span></span></span></label>
+          <section class="location-setting" aria-labelledby="location-settings-title">
+            <h3 id="location-settings-title">Sun &amp; location</h3>
+            <label for="location-source">Location source</label>
+            <select id="location-source"><option value="city">Search for a city</option><option value="device">Device location</option></select>
+            <form id="city-form">
+              <label for="city-search">City</label>
+              <div class="inline-field"><input id="city-search" type="search" required autocomplete="off" placeholder="Search city or town"><button class="primary-button" type="submit">Use city</button></div>
+              <p id="city-search-help">Your search is sent to Open-Meteo. Only the selected city name is shown in the extension.</p>
+            </form>
+            <div id="device-location-controls" hidden><p>Use your device’s position for the local sun. Your browser may ask for permission.</p><button id="use-device-location" class="primary-button" type="button">Get device location</button></div>
+            <p id="location-settings-status" role="status" aria-live="polite"></p>
+            <label class="setting-row cloud-setting" for="setting-clouds"><span><strong>Live clouds</strong><small>Draws the sky from current cloud cover using Open-Meteo.</small></span><span class="switch"><input id="setting-clouds" type="checkbox" checked><span></span></span></label>
+            <label class="sun-size-label" for="sun-size-scale">Sun display scale <output id="sun-size-output">100%</output></label>
+            <input id="sun-size-scale" type="range" min="60" max="160" step="5" value="100">
+            <p class="sun-setting-note">The sun crosses the full width of the window, from sunrise at the left edge to sunset at the right. Its apparent diameter follows the solar model; the disk is enlarged for visibility and this slider adjusts that display scale.</p>
+          </section>
+          <div class="name-setting"><label for="setting-username">Your name <small>Used in the greeting</small></label><div class="inline-field"><input id="setting-username" type="text" maxlength="24" autocomplete="off" placeholder="Optional"><button id="save-username" class="primary-button" type="button">Save</button></div></div>
+        </div>
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden><span class="toast-check">✓</span><span id="toast-message">Saved</span></div>
+  </body>
+</html>

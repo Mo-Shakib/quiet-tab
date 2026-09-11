@@ -1,0 +1,277 @@
+/* SunCalc 2.0.2 + SolarModel. Astronomy stays on-device; sky colors are a clear-sky approximation. */
+(() => {
+  const el = id => document.getElementById(id);
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const defaultLocation = {latitude:0, longitude:0};
+  const validCoordinates = value => value && Number.isFinite(value.latitude) && Math.abs(value.latitude)<=90 && Number.isFinite(value.longitude) && Math.abs(value.longitude)<=180;
+  let config = {source:'city', custom:{...defaultLocation}, city:'Choose a city', device:null, size:100, timeZone:'UTC', clouds:true};
+  try {
+    const saved = JSON.parse(localStorage.getItem('nt_solar_settings'));
+    if (saved && validCoordinates(saved.custom)) config = {source:saved.source==='device'?'device':'city', custom:saved.custom, city:saved.city||'Saved city', device:validCoordinates(saved.device)?saved.device:null, size:Number.isFinite(saved.size)?clamp(saved.size,60,160):100, timeZone:saved.timeZone||'UTC', clouds:saved.clouds!==false};
+  } catch {}
+  try {new Intl.DateTimeFormat('en',{timeZone:config.timeZone});} catch {config.timeZone='UTC';}
+  const zone = () => config.source==='device' && config.device ? Intl.DateTimeFormat().resolvedOptions().timeZone : config.timeZone;
+  let location = config.source === 'device' && config.device ? config.device : config.custom;
+  let requestVersion = 0;
+  const persist = () => {try {localStorage.setItem('nt_solar_settings',JSON.stringify(config));} catch {el('location-settings-status').textContent='Updated for this session. Browser storage is unavailable.';}};
+  let preview = null;
+  let dayKey = '';
+  let times, start, end, coordinates;
+  const valid = date => date instanceof Date && Number.isFinite(+date);
+  const _fmtCache = new Map();
+  function cachedFmt(options) {
+    const key = JSON.stringify(options);
+    let fmt = _fmtCache.get(key);
+    if (!fmt) { fmt = new Intl.DateTimeFormat(options.locale || [], options); _fmtCache.set(key, fmt); }
+    return fmt;
+  }
+  const formatTime = date => valid(date) ? cachedFmt({timeZone:zone(),hour:'2-digit', minute:'2-digit', hour12: !el('setting-24h').checked}).format(date) : '—';
+  const duration = ms => { const minutes = Math.round(ms / 60000); return `${Math.floor(minutes / 60)}h ${minutes % 60}m`; };
+  const altitude = date => SolarModel.position(date, coordinates.latitude, coordinates.longitude).altitude;
+  const point = date => [640 * (date - start) / (end - start), 73 - altitude(date) * .5];
+  function prepareDay(now) {
+    const localDate=SolarModel.parts(now,zone());
+    const key = `${localDate.year}-${localDate.month}-${localDate.day}-${JSON.stringify(location)}-${config.source}-${zone()}`;
+    if (key === dayKey) return;
+    dayKey = key;
+    coordinates = location;
+    times = SolarModel.eventsForDay(now,zone(),coordinates.latitude,coordinates.longitude);
+    start=times.start; end=times.end;
+    el('time-slider').max=Math.round((end-start)/60000)-1;
+    const labels=document.querySelectorAll('.timeline-labels span');
+    labels.forEach((label,i)=>{ label.textContent=cachedFmt({timeZone:zone(),hour:'numeric',minute:'2-digit',hour12:!el('setting-24h').checked}).format(new Date(+start+(end-start)*i/4)); });
+    const stops=Array.from({length:25},(_,i)=>{const elevation=SolarModel.position(new Date(+start+(end-start)*i/24),coordinates.latitude,coordinates.longitude).elevation; return `${elevation< -6?'#303955':elevation<0?'#9c819e':elevation<8?'#e5a178':'#f1dfb1'} ${i/24*100}%`;});
+    document.documentElement.style.setProperty('--day-track',`linear-gradient(90deg,${stops.join(',')})`);
+    const points = Array.from({length:145}, (_, i) => point(new Date(+start + (end-start)*i/144)));
+    el('solar-path').setAttribute('d', points.map(([x,y],i) => `${i?'L':'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' '));
+    el('location-label').textContent = config.source==='device' && config.device ? 'Device location' : config.city;
+    el('location-note').textContent = `${zone()} · click to change.`;
+  }
+  /* Sky palette by solar elevation: zenith, mid sky, horizon band, and the warm
+   * glow that pools around the sun. The stops crowd together near the horizon
+   * because that is where twilight colour changes fastest. */
+  const palettes = [
+    [-18, ['#05070f','#0a1020','#141c30','#1b2440']],
+    [-12, ['#070b18','#111a31','#23304c','#313e63']],
+    [-6, ['#0b1226','#1e2b4f','#445074','#7b5f84']],
+    [-3, ['#131c3a','#3a3f6b','#8a6b8d','#d1749a']],
+    [-.833, ['#1c2a4f','#5b5580','#c9806f','#ff9060']],
+    [2, ['#26456f','#85748c','#eaa06d','#ff9e54']],
+    [6, ['#2b5580','#8e94a2','#f0be92','#ffb877']],
+    [12, ['#2a5f91','#7fa0bb','#ddc7ad','#ffcb95']],
+    [30, ['#1d5a8f','#5c93bb','#b4cfd8','#d8dcd4']],
+    [90, ['#0e4d80','#4a8ec6','#a7d2e6','#bcd9e6']]
+  ];
+  const channels = hex => hex.match(/[a-f\d]{2}/gi).map(n=>parseInt(n,16));
+  const _mixCache = new Map();
+  function mix(a,b,t) {
+    const key = a + b + (t * 1000 | 0);
+    let result = _mixCache.get(key);
+    if (result) return result;
+    if (_mixCache.size > 2048) _mixCache.clear();
+    const x=channels(a),y=channels(b);
+    result = `#${x.map((n,i)=>Math.round(n+(y[i]-n)*t).toString(16).padStart(2,'0')).join('')}`;
+    _mixCache.set(key, result);
+    return result;
+  }
+
+  const _domCache = new Map();
+  function setTextOnce(id, text) { if (_domCache.get('t:'+id) !== text) { el(id).textContent = text; _domCache.set('t:'+id, text); } }
+  function setAttrOnce(id, attr, value) { const k = `a:${id}:${attr}`; if (_domCache.get(k) !== value) { el(id).setAttribute(attr, value); _domCache.set(k, value); } }
+  const _cssCache = new Map();
+  function setCSSOnce(css, name, value) { const sv = String(value); if (_cssCache.get(name) !== sv) { css.setProperty(name, value); _cssCache.set(name, sv); } }
+
+  /* Live cloud decks. Everything degrades to the clear-sky model when the reading
+   * is missing, stale or switched off, so the sky never waits on the network. */
+  const ago = ms => {const minutes=Math.round(ms/60000); return minutes<1?'just now':minutes<60?`${minutes} min ago`:`${Math.round(minutes/60)} h ago`;};
+  const clouds = (() => {
+    let reading = null;
+    function describe() {
+      const readout=el('weather-readout'), note=el('sky-model-note');
+      if(!config.clouds) {readout.hidden=true; note.textContent='Clear-sky simulation · live clouds off'; return;}
+      if(!reading) {readout.hidden=true; note.textContent='Clear-sky simulation · no cloud data yet'; return;}
+      readout.hidden=false;
+      const temperature=Number.isFinite(reading.temperature)?` · ${Math.round(reading.temperature)}°`:'';
+      readout.textContent=`${reading.label} · ${Math.round(reading.cover*100)}% cloud${temperature}`;
+      note.textContent=`Live cloud cover · Open-Meteo · ${ago(Date.now()-reading.observedAt)}`;
+    }
+    const watcher=window.SkyWeather?window.SkyWeather.watch(next=>{reading=next;describe();render();}):null;
+    return {
+      current:()=>config.clouds?reading:null,
+      describe,
+      sync() {if(!watcher){describe();return;} watcher.setEnabled(config.clouds); watcher.setLocation(location); describe();}
+    };
+  })();
+  /* Cloud colour is a two-tone shading model: a sunlit face that tracks the sun's
+   * own colour and a shadowed base that deepens with cover and falling light. */
+  function paintClouds(weather,elevation,warmth) {
+    const css=document.documentElement.style;
+    const daylight=clamp((elevation+8)/14,0,1);
+    if(!weather) {['--cloud-low','--cloud-mid','--cloud-high','--cloud-sheet','--cloud-glow','--haze'].forEach(name=>setCSSOnce(css,name,'0')); return;}
+    const lit=mix('#39415f',mix('#fffaf0','#ffab74',warmth),daylight);
+    setCSSOnce(css,'--cloud-lit',lit);
+    setCSSOnce(css,'--cloud-top',mix(lit,'#dfe7f3',.3));
+    setCSSOnce(css,'--cloud-shade',mix(mix('#1d2438',mix('#93a1bb','#9a7d8e',warmth),daylight),'#4a5165',weather.shade*.7));
+    const presence=.28+.72*daylight;
+    setCSSOnce(css,'--cloud-low',(weather.layers.low*presence).toFixed(3));
+    setCSSOnce(css,'--cloud-mid',(weather.layers.mid*presence).toFixed(3));
+    setCSSOnce(css,'--cloud-high',(weather.layers.high*presence).toFixed(3));
+    setCSSOnce(css,'--cloud-sheet',(clamp((weather.cover-.55)/.45,0,1)*.8*presence).toFixed(3));
+    setCSSOnce(css,'--cloud-glow',(weather.density*daylight*.85).toFixed(3));
+    setCSSOnce(css,'--cloud-drift',weather.drift.toFixed(2));
+    setCSSOnce(css,'--haze',(weather.haze*(.3+.7*daylight)*.5).toFixed(3));
+  }
+  function render() {
+    const now = new Date(); prepareDay(now);
+    const date = preview === null ? now : new Date(+start+clamp(preview,0,(end-start)/60000-1)*60000);
+    window.solarContext={date:preview===null?null:date,timeZone:zone()};
+    updateClock();
+    const position=SolarModel.position(date,coordinates.latitude,coordinates.longitude);
+    const alt = position.elevation;
+    const rising = altitude(new Date(+date+60000)) > position.altitude;
+    const phase = alt < -18 ? 'The quiet of night' : alt < -12 ? 'Astronomical twilight' : alt < -6 ? 'Nautical twilight' : alt < 0 ? (rising?'First light':'Last light') : alt < 6 ? 'Golden hour' : 'Under the daylight';
+    setTextOnce('sky-phase', phase);
+    const upper = palettes.findIndex(([e])=>e >= alt);
+    const hi = upper < 0 ? palettes.length-1 : upper, lo = Math.max(0,hi-1);
+    const t = hi===lo ? 0 : clamp((alt-palettes[lo][0])/(palettes[hi][0]-palettes[lo][0]),0,1);
+    const sky = palettes[lo][1].map((color,i)=>mix(color,palettes[hi][1][i],t));
+    const light = clamp(Math.sin(Math.max(0,alt)*Math.PI/180),0,1);
+    const [x,y] = point(date);
+    const css = document.documentElement.style;
+    const airMass=1/(Math.sin(clamp(position.altitude,0,90)*Math.PI/180)+.50572*Math.pow(clamp(position.altitude,0,90)+6.07995,-1.6364));
+    const warmth=clamp(1-Math.exp(-.09*(airMass-1)),0,1);
+    const weather = clouds.current();
+    const grey = weather ? weather.shade*.5 : 0;
+    ['--sky-top','--sky-mid','--sky-bottom'].forEach((name,i)=>setCSSOnce(css,name,mix(sky[i],'#6d7585',grey)));
+    const horizonGlow = Math.exp(-((alt>=0?alt/9:alt/12)**2))*(alt<-16?0:1);
+    const glowColor = sky[3];
+    setCSSOnce(css,'--sky-glow',glowColor);
+    setCSSOnce(css,'--glow-strength',`${Math.round(horizonGlow*72*clamp(1-grey*1.1,0,1))}%`);
+    setCSSOnce(css,'--glow-core',mix(glowColor,'#fff0cd',.45));
+    setCSSOnce(css,'--glow-edge',glowColor);
+    setCSSOnce(css,'--glow-belt',mix(glowColor,'#b57fae',.55));
+    setCSSOnce(css,'--afterglow',(horizonGlow*(1-grey*.8)).toFixed(3));
+    setCSSOnce(css,'--sun-x',`${(position.sky.x*100).toFixed(2)}%`);
+    setCSSOnce(css,'--sun-height',position.sky.height.toFixed(4));
+    setCSSOnce(css,'--sun-opacity',position.visible>0?(1-(weather?weather.density*.55:0)).toFixed(2):0);
+    setCSSOnce(css,'--sun-clip',`${(1-position.visible)*100}%`);
+    setCSSOnce(css,'--sun-glow',((.03+light*.22)*(weather?1-weather.density*.6:1)).toFixed(3));
+    setCSSOnce(css,'--sun-color',mix('#fff8e8','#ff7132',warmth));
+    setCSSOnce(css,'--sun-core',mix('#fffdf4','#fff3c4',warmth));
+    setCSSOnce(css,'--sun-body',mix('#fff8e8','#ffc266',warmth));
+    paintClouds(weather,alt,warmth);
+    clouds.describe();
+    setCSSOnce(css,'--sun-scale',((position.diameter/.533128)*config.size/100).toFixed(4));
+    const daylight=clamp((alt+12)/24,0,1);
+    const lowSun=warmth*clamp(1-alt/14,0,1);
+    const dayHue=222+166*lowSun;
+    const hue=(225+(dayHue-225)*clamp((alt+12)/12,0,1)+360)%360;
+    setCSSOnce(css,'--ui-hue',hue.toFixed(1));
+    setCSSOnce(css,'--ui-saturation',`${Math.round(22+18*daylight)}%`);
+    setCSSOnce(css,'--ui-lightness',`${(7+11*daylight).toFixed(1)}%`);
+    setCSSOnce(css,'--ui-accent',alt<0?mix('#b9c9f1','#ffd2a3',clamp((alt+12)/12,0,1)):mix('#e3f2ff','#ffd2a3',warmth));
+    setCSSOnce(css,'--light-strength',(.025+.13*daylight).toFixed(3));
+    setCSSOnce(css,'--shadow-x',`${((50-position.sky.x*100)*.35).toFixed(1)}px`);
+    setCSSOnce(css,'--shadow-y',`${(10+24*(1-light)).toFixed(1)}px`);
+    setCSSOnce(css,'--plasma-rotation',`${((+date/86400000)%27.2753)/27.2753*360}deg`);
+    const xStr = String(x), yStr = String(y);
+    ['chart-sun','chart-sun-halo'].forEach(id=>{ setAttrOnce(id,'cx',xStr); setAttrOnce(id,'cy',yStr); });
+    setAttrOnce('sun-guide','x1',xStr); setAttrOnce('sun-guide','x2',xStr); setAttrOnce('sun-guide','y1',yStr);
+    el('sun-chart').setAttribute('aria-label',`Sun altitude throughout today. ${formatTime(date)}: ${position.altitude.toFixed(1)} degrees apparent elevation above the horizon.`);
+    setTextOnce('sunrise-time', formatTime(times.sunrise));
+    setTextOnce('sunset-time', formatTime(times.sunset));
+    setTextOnce('daylight-duration', times.daylight===0?'0h · no daylight':duration(times.daylight));
+    const next=times.events.find(event=>event.time>date);
+    setTextOnce('solar-summary', next ? `${duration(next.time-date)} until ${next.type}` : position.visible>0 ? 'The sun stays above the horizon' : 'The sun stays below the horizon');
+    const compass=['N','NE','E','SE','S','SW','W','NW'][Math.round(position.azimuth/45)%8];
+    setTextOnce('light-level', `${position.altitude.toFixed(1)}° elevation · ${position.azimuth.toFixed(1)}° ${compass}`);
+    el('light-level').title = `Apparent elevation with standard refraction. Solar diameter ${position.diameter.toFixed(3)}°, distance ${position.distanceAU.toFixed(4)} AU. East is left in the sky projection.`;
+    setTextOnce('preview-time', preview === null ? `Now · ${formatTime(date)}` : `Preview · ${formatTime(date)}`);
+    el('time-slider').setAttribute('aria-valuetext',`${formatTime(date)}, ${phase}`);
+    if(preview === null) el('time-slider').value = Math.floor((now-start)/60000);
+    el('live-button').dataset.preview = String(preview !== null);
+    setTextOnce('live-label', preview === null ? 'Live sky' : 'Back to live');
+  }
+  el('time-slider').addEventListener('input',event=>{preview=Number(event.target.value);render();});
+  el('live-button').addEventListener('click',()=>{preview=null;render();});
+  el('setting-24h').addEventListener('change',()=>{dayKey='';_fmtCache.clear();render();});
+  function syncLocationSettings() {
+    el('location-source').value=config.source;
+    el('city-form').hidden=config.source==='device';
+    el('device-location-controls').hidden=config.source!=='device';
+    el('city-search').value=config.city==='Choose a city'?'':config.city;
+    el('sun-size-scale').value=config.size;
+    el('sun-size-output').textContent=`${config.size}%`;
+    el('setting-clouds').checked=config.clouds;
+  }
+  function applyLocation() {
+    location=config.source==='device' && config.device ? config.device : config.custom;
+    persist(); clouds.sync(); render();
+  }
+  el('location-button').addEventListener('click',()=>{ syncLocationSettings(); el('settings-modal').showModal(); el('location-source').focus(); });
+  el('location-source').addEventListener('change',event=>{
+    requestVersion++; el('use-device-location').disabled=false;
+    config.source=event.target.value; syncLocationSettings(); applyLocation();
+    el('location-settings-status').textContent=config.source==='device' ? (config.device?'Using your saved device location. Refresh to update.':'Click Get device location. Using the selected city until a position is available.') : `Using ${config.city}.`;
+  });
+  el('city-form').addEventListener('submit',async event=>{
+    event.preventDefault();
+    const query=el('city-search').value.trim();
+    if(!query)return;
+    const request=++requestVersion;
+    el('location-settings-status').textContent='Searching for that city…';
+    try {
+      const response=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+      if(!response.ok)throw new Error('search failed');
+      const result=(await response.json()).results?.[0];
+      if(request!==requestVersion)return;
+      const next={latitude:Number(result?.latitude),longitude:Number(result?.longitude)};
+      if(!result||!validCoordinates(next)||!result.timezone)throw new Error('not found');
+      new Intl.DateTimeFormat('en',{timeZone:result.timezone});
+      config.custom=next; config.city=[result.name,result.admin1,result.country].filter(Boolean).filter((part,index,array)=>array.indexOf(part)===index).join(', '); config.timeZone=result.timezone; config.source='city';
+      applyLocation(); syncLocationSettings();
+      el('location-settings-status').textContent=`Using ${config.city}.`;
+    } catch {
+      if(request===requestVersion)el('location-settings-status').textContent='City not found. Check the spelling and try again.';
+    }
+  });
+  el('use-device-location').addEventListener('click',()=>{
+    if (!navigator.geolocation) {el('location-settings-status').textContent='Device location is unavailable. Your selected city is still in use.';return;}
+    const request=++requestVersion;
+    el('use-device-location').disabled=true;
+    el('location-settings-status').textContent='Waiting for your device’s location…';
+    navigator.geolocation.getCurrentPosition(position=>{
+      if(request!==requestVersion)return;
+      el('use-device-location').disabled=false;
+      const next={latitude:position.coords.latitude,longitude:position.coords.longitude};
+      if(!validCoordinates(next)){el('location-settings-status').textContent='The device returned an invalid position. Your current coordinates are still in use.';return;}
+      config.device=next; config.source='device'; applyLocation(); syncLocationSettings();
+      el('location-settings-status').textContent='Device location saved. Refresh here whenever you move.';
+    },()=>{
+      if(request!==requestVersion)return;
+      el('use-device-location').disabled=false;
+      el('location-settings-status').textContent='Location unavailable or permission denied. Your selected city is still in use. You can retry or choose city search.';
+    },{enableHighAccuracy:false,timeout:15000,maximumAge:60000});
+  });
+  el('setting-clouds').addEventListener('change',event=>{
+    config.clouds=event.target.checked; persist(); clouds.sync(); render();
+  });
+  el('sun-size-scale').addEventListener('input',event=>{
+    config.size=Number(event.target.value); el('sun-size-output').textContent=`${config.size}%`; persist(); render();
+  });
+  el('reset-trigger').addEventListener('click',()=>{
+    requestVersion++; el('use-device-location').disabled=false;
+    config={source:'city',custom:{...defaultLocation},city:'Choose a city',device:null,size:100,timeZone:'UTC',clouds:true}; preview=null;
+    el('location-settings-status').textContent='Preferences reset. Search for a city to localize the sun.';
+    syncLocationSettings(); applyLocation();
+  });
+  let _rafPending = false;
+  function scheduleRender() { if (!_rafPending) { _rafPending = true; requestAnimationFrame(() => { _rafPending = false; render(); }); } }
+  syncLocationSettings();
+  clouds.sync();
+  window.addEventListener('resize', scheduleRender);
+  window.addEventListener('scroll', scheduleRender, {passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden) render();});
+  document.addEventListener('DOMContentLoaded',render);
+  setInterval(()=>{if(!document.hidden) render();},1000);
+})();
