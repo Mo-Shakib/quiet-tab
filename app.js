@@ -31,6 +31,10 @@ const SEARCH_ENGINES = [
 
 const state = { engineIndex: 0, is24Hour: false, targetBlank: false, username: "", toastTimer: null };
 const $ = (selector) => document.querySelector(selector);
+const safeStorage = {
+  set(key, value) { try { localStorage.setItem(key, String(value)); return true; } catch { return false; } },
+  remove(key) { try { localStorage.removeItem(key); return true; } catch { return false; } }
+};
 
 const _fmtCache = new Map();
 function cachedDateFormat(options) {
@@ -97,7 +101,7 @@ function toggleEngineMenu(force) {
 
 function selectEngine(index, notify = false) {
   state.engineIndex = index;
-  localStorage.setItem("nt_engine", SEARCH_ENGINES[index].id);
+  safeStorage.set("nt_engine", SEARCH_ENGINES[index].id);
   renderEngine();
   toggleEngineMenu(false);
   $("#search-input").focus();
@@ -154,7 +158,7 @@ function closeDialog(id) {
 
 function saveUsername() {
   state.username = $("#setting-username").value.trim();
-  localStorage.setItem("nt_username", state.username);
+  safeStorage.set("nt_username", state.username);
   updateClock();
   showToast("Greeting updated");
 }
@@ -166,12 +170,13 @@ function syncSettings() {
 }
 
 function resetPreferences() {
-  ["nt_engine", "nt_24h", "nt_target_blank", "nt_username"].forEach((key) => localStorage.removeItem(key));
+  ["nt_engine", "nt_24h", "nt_target_blank", "nt_username"].forEach((key) => safeStorage.remove(key));
   state.engineIndex = 0;
   state.is24Hour = false;
   state.targetBlank = false;
   state.username = "";
   syncSettings(); renderEngine(); updateClock();
+  document.dispatchEvent(new CustomEvent("quiet-reset"));
   showToast("Preferences reset");
 }
 
@@ -191,9 +196,10 @@ function bindEvents() {
   $("#open-settings-trigger").addEventListener("click", () => openDialog("settings-modal"));
   $("#save-username").addEventListener("click", saveUsername);
   $("#setting-username").addEventListener("keydown", (event) => { if (event.key === "Enter") saveUsername(); });
-  $("#setting-24h").addEventListener("change", (event) => { state.is24Hour = event.currentTarget.checked; localStorage.setItem("nt_24h", state.is24Hour); updateClock(); });
-  $("#setting-target").addEventListener("change", (event) => { state.targetBlank = event.currentTarget.checked; localStorage.setItem("nt_target_blank", state.targetBlank); });
-  $("#reset-trigger").addEventListener("click", resetPreferences);
+  $("#setting-24h").addEventListener("change", (event) => { state.is24Hour = event.currentTarget.checked; safeStorage.set("nt_24h", state.is24Hour); updateClock(); });
+  $("#setting-target").addEventListener("change", (event) => { state.targetBlank = event.currentTarget.checked; safeStorage.set("nt_target_blank", state.targetBlank); });
+  $("#reset-trigger").addEventListener("click", () => openDialog("reset-modal"));
+  $("#confirm-reset").addEventListener("click", () => { closeDialog("reset-modal"); resetPreferences(); });
   document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => closeDialog(button.dataset.close)));
   document.querySelectorAll("dialog").forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
   document.addEventListener("click", (event) => { if (!$(".engine-picker").contains(event.target)) toggleEngineMenu(false); });

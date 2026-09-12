@@ -32,6 +32,7 @@ A Chrome extension that replaces your new tab page with a calm, minimal interfac
 - **Location Aware** — Search by city or use device geolocation for accurate sun positioning.
 - **Personalized Greeting** — Set your name for a friendly welcome message.
 - **Minimal & Private** — No tracking or analytics; city search and optional weather data come directly from Open-Meteo.
+- **Honest First Run** — Until you choose a city or device location, the sky is clearly labelled as illustrative and no weather request is made.
 
 ## Installation
 
@@ -54,7 +55,7 @@ Keep the extracted folder after installation—Chrome loads the extension direct
    - Toggle 12h/24h clock format
    - Set your name for a personalized greeting
    - Choose your location source (city search or device location)
-   - Enable/disable live cloud rendering
+   - Enable/disable live cloud rendering (starts only after a location is selected)
    - Adjust the sun's visual size
 
 ### Keyboard Shortcuts

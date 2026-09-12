@@ -2,16 +2,22 @@
 (() => {
   const el = id => document.getElementById(id);
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  // Coordinates used only to paint an illustrative sky before onboarding.
   const defaultLocation = {latitude:0, longitude:0};
   const validCoordinates = value => value && Number.isFinite(value.latitude) && Math.abs(value.latitude)<=90 && Number.isFinite(value.longitude) && Math.abs(value.longitude)<=180;
-  let config = {source:'city', custom:{...defaultLocation}, city:'Choose a city', device:null, size:100, timeZone:'UTC', clouds:true};
+  let config = {source:'city', custom:null, city:'Choose a city', device:null, size:100, timeZone:null, deviceTimeZone:null, clouds:true};
   try {
     const saved = JSON.parse(localStorage.getItem('nt_solar_settings'));
-    if (saved && validCoordinates(saved.custom)) config = {source:saved.source==='device'?'device':'city', custom:saved.custom, city:saved.city||'Saved city', device:validCoordinates(saved.device)?saved.device:null, size:Number.isFinite(saved.size)?clamp(saved.size,60,160):100, timeZone:saved.timeZone||'UTC', clouds:saved.clouds!==false};
+    if (saved) {
+      const legacyPlaceholder=saved.city==='Choose a city'&&saved.custom?.latitude===0&&saved.custom?.longitude===0;
+      config = {source:saved.source==='device'?'device':'city', custom:validCoordinates(saved.custom)&&!legacyPlaceholder?saved.custom:null, city:legacyPlaceholder?'Choose a city':saved.city||'Choose a city', device:validCoordinates(saved.device)?saved.device:null, size:Number.isFinite(saved.size)?clamp(saved.size,60,160):100, timeZone:legacyPlaceholder?null:saved.timeZone||null, deviceTimeZone:saved.deviceTimeZone||null, clouds:saved.clouds!==false};
+    }
   } catch {}
-  try {new Intl.DateTimeFormat('en',{timeZone:config.timeZone});} catch {config.timeZone='UTC';}
-  const zone = () => config.source==='device' && config.device ? Intl.DateTimeFormat().resolvedOptions().timeZone : config.timeZone;
-  let location = config.source === 'device' && config.device ? config.device : config.custom;
+  for(const key of ['timeZone','deviceTimeZone']) if(config[key]) try {new Intl.DateTimeFormat('en',{timeZone:config[key]});} catch {config[key]=null;}
+  const browserZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const configured = () => config.source==='device' ? validCoordinates(config.device) : validCoordinates(config.custom);
+  const zone = () => config.source==='device' && config.device ? (config.deviceTimeZone||browserZone()) : (config.timeZone||browserZone());
+  let location = config.source === 'device' && config.device ? config.device : (config.custom||defaultLocation);
   let requestVersion = 0;
   const persist = () => {try {localStorage.setItem('nt_solar_settings',JSON.stringify(config));} catch {el('location-settings-status').textContent='Updated for this session. Browser storage is unavailable.';}};
   let preview = null;
@@ -62,6 +68,63 @@
     [30, ['#1d5a8f','#5c93bb','#b4cfd8','#d8dcd4']],
     [90, ['#0e4d80','#4a8ec6','#a7d2e6','#bcd9e6']]
   ];
+  const skyMessages = {
+    night: [
+      'Rest is part of the work.',
+      'Even the sun makes room for darkness.',
+      'Quiet hours can bring clear answers.',
+      'The stars are daylight traveling from far away.',
+      'Tomorrow’s light is already on its way.'
+    ],
+    dawn: [
+      'Begin gently; the day is beginning with you.',
+      'First light is proof that change can arrive quietly.',
+      'A small start can brighten an entire day.',
+      'The horizon gets lighter before the sun appears.',
+      'New light, new choices, no need to rush.',
+      'Near the equator, sunrise sweeps westward at roughly 1,600 km/h.'
+    ],
+    morning: [
+      'Use the fresh light for the work that matters most.',
+      'Morning light helps set your body’s daily clock.',
+      'Choose one meaningful thing and begin.',
+      'Momentum often starts with ten focused minutes.',
+      'Face the day before the day fills up.',
+      'The sun has been shining for about 4.6 billion years.'
+    ],
+    midday: [
+      'The brightest hours are made for clear decisions.',
+      'Pause, breathe, and notice how far you have come.',
+      'Strong light, steady effort, simple priorities.',
+      'Progress grows where attention stays.',
+      'At solar noon, the sun reaches its highest point today.',
+      'Sunlight reaches Earth in about eight minutes.'
+    ],
+    afternoon: [
+      'There is still good light left for meaningful work.',
+      'A slower pace can still move important things forward.',
+      'Finish what matters; release what does not.',
+      'Protect your attention as the day gets busier.',
+      'The afternoon is a second chance to reset your focus.',
+      'Longer shadows make the remaining light easier to notice.'
+    ],
+    evening: [
+      'Let the fading light soften the edges of the day.',
+      'Not every task needs to follow you into the evening.',
+      'Sunset is a daily invitation to let go.',
+      'Review the day with honesty, not judgment.',
+      'Warm sunset colors travel through more of the atmosphere.',
+      'Enough for today can be a form of wisdom.'
+    ]
+  };
+  function messageFor(date,alt,rising) {
+    const hour=SolarModel.parts(date,zone()).hour;
+    const group=alt < -9 ? 'night' : alt < 3 ? (rising?'dawn':'evening') : hour < 10 ? 'morning' : hour < 14 ? 'midday' : hour < 18 ? 'afternoon' : 'evening';
+    const messages=skyMessages[group];
+    // A stable 20-minute slot keeps new tabs fresh without changing while read.
+    const slot=Math.floor(+date/1200000);
+    return messages[((slot%messages.length)+messages.length)%messages.length];
+  }
   const channels = hex => hex.match(/[a-f\d]{2}/gi).map(n=>parseInt(n,16));
   const _mixCache = new Map();
   function mix(a,b,t) {
@@ -88,18 +151,22 @@
     let reading = null;
     function describe() {
       const readout=el('weather-readout'), note=el('sky-model-note');
+      if(!configured()) {readout.hidden=false; readout.textContent='Illustrative sky'; readout.dataset.status='unconfigured'; note.textContent='Choose a location for local sun and clouds'; return;}
       if(!config.clouds) {readout.hidden=true; note.textContent='Clear-sky simulation · live clouds off'; return;}
-      if(!reading) {readout.hidden=true; note.textContent='Clear-sky simulation · no cloud data yet'; return;}
+      if(status==='loading'&&!reading) {readout.hidden=false;readout.textContent='Updating clouds…';readout.dataset.status='loading';note.textContent='Requesting current cloud cover from Open-Meteo';return;}
+      if(!reading) {readout.hidden=false; readout.textContent=status==='unavailable'?'Clouds unavailable':'Waiting for clouds…';readout.dataset.status=status; note.textContent='Clear-sky simulation · cloud data unavailable'; return;}
       readout.hidden=false;
       const temperature=Number.isFinite(reading.temperature)?` · ${Math.round(reading.temperature)}°`:'';
-      readout.textContent=`${reading.label} · ${Math.round(reading.cover*100)}% cloud${temperature}`;
+      readout.textContent=`${reading.label} · ${Math.round(reading.cover*100)}% cloud${temperature}${reading.cacheStatus==='cached'?' · cached':''}`;
+      readout.dataset.status=reading.cacheStatus||'live';
       note.textContent=`Live cloud cover · Open-Meteo · ${ago(Date.now()-reading.observedAt)}`;
     }
-    const watcher=window.SkyWeather?window.SkyWeather.watch(next=>{reading=next;describe();render();}):null;
+    let status='idle';
+    const watcher=window.SkyWeather?window.SkyWeather.watch(next=>{reading=next;describe();render();},next=>{status=next;describe();}):null;
     return {
       current:()=>config.clouds?reading:null,
       describe,
-      sync() {if(!watcher){describe();return;} watcher.setEnabled(config.clouds); watcher.setLocation(location); describe();}
+      sync() {if(!watcher){describe();return;} watcher.setLocation(location); watcher.setEnabled(config.clouds&&configured()); describe();}
     };
   })();
   /* Cloud colour is a two-tone shading model: a sunlit face that tracks the sun's
@@ -130,7 +197,8 @@
     const alt = position.elevation;
     const rising = altitude(new Date(+date+60000)) > position.altitude;
     const phase = alt < -18 ? 'The quiet of night' : alt < -12 ? 'Astronomical twilight' : alt < -6 ? 'Nautical twilight' : alt < 0 ? (rising?'First light':'Last light') : alt < 6 ? 'Golden hour' : 'Under the daylight';
-    setTextOnce('sky-phase', phase);
+    setTextOnce('sky-phase', configured()?phase:'Illustrative sky');
+    setTextOnce('sky-message', configured()?messageFor(date,alt,rising):'Choose a location and let the sky meet you where you are.');
     const upper = palettes.findIndex(([e])=>e >= alt);
     const hi = upper < 0 ? palettes.length-1 : upper, lo = Math.max(0,hi-1);
     const t = hi===lo ? 0 : clamp((alt-palettes[lo][0])/(palettes[hi][0]-palettes[lo][0]),0,1);
@@ -178,11 +246,11 @@
     ['chart-sun','chart-sun-halo'].forEach(id=>{ setAttrOnce(id,'cx',xStr); setAttrOnce(id,'cy',yStr); });
     setAttrOnce('sun-guide','x1',xStr); setAttrOnce('sun-guide','x2',xStr); setAttrOnce('sun-guide','y1',yStr);
     el('sun-chart').setAttribute('aria-label',`Sun altitude throughout today. ${formatTime(date)}: ${position.altitude.toFixed(1)} degrees apparent elevation above the horizon.`);
-    setTextOnce('sunrise-time', formatTime(times.sunrise));
-    setTextOnce('sunset-time', formatTime(times.sunset));
-    setTextOnce('daylight-duration', times.daylight===0?'0h · no daylight':duration(times.daylight));
+    setTextOnce('sunrise-time', configured()?formatTime(times.sunrise):'—');
+    setTextOnce('sunset-time', configured()?formatTime(times.sunset):'—');
+    setTextOnce('daylight-duration', configured()?(times.daylight===0?'0h · no daylight':duration(times.daylight)):'Set location');
     const next=times.events.find(event=>event.time>date);
-    setTextOnce('solar-summary', next ? `${duration(next.time-date)} until ${next.type}` : position.visible>0 ? 'The sun stays above the horizon' : 'The sun stays below the horizon');
+    setTextOnce('solar-summary', configured()?(next ? `${duration(next.time-date)} until ${next.type}` : position.visible>0 ? 'The sun stays above the horizon' : 'The sun stays below the horizon'):'Choose a location for your local sun');
     const compass=['N','NE','E','SE','S','SW','W','NW'][Math.round(position.azimuth/45)%8];
     setTextOnce('light-level', `${position.altitude.toFixed(1)}° elevation · ${position.azimuth.toFixed(1)}° ${compass}`);
     el('light-level').title = `Apparent elevation with standard refraction. Solar diameter ${position.diameter.toFixed(3)}°, distance ${position.distanceAU.toFixed(4)} AU. East is left in the sky projection.`;
@@ -205,8 +273,23 @@
     el('setting-clouds').checked=config.clouds;
   }
   function applyLocation() {
-    location=config.source==='device' && config.device ? config.device : config.custom;
+    location=config.source==='device' && config.device ? config.device : (config.custom||defaultLocation);
+    dayKey='';
     persist(); clouds.sync(); render();
+  }
+  const cityLabel=result=>[result.name,result.admin1,result.country].filter(Boolean).filter((part,index,array)=>array.indexOf(part)===index).join(', ');
+  function chooseCity(result) {
+    const next={latitude:Number(result.latitude),longitude:Number(result.longitude)};
+    if(!validCoordinates(next)||!result.timezone)return;
+    try {new Intl.DateTimeFormat('en',{timeZone:result.timezone});} catch {return;}
+    config.custom=next;config.city=cityLabel(result);config.timeZone=result.timezone;config.source='city';
+    el('city-results').hidden=true;applyLocation();syncLocationSettings();
+    el('location-settings-status').textContent=`Using ${config.city}.`;
+  }
+  function showCityResults(results) {
+    const list=el('city-results');list.replaceChildren();
+    results.forEach(result=>{const button=document.createElement('button');button.type='button';button.className='city-result';button.textContent=cityLabel(result);button.addEventListener('click',()=>chooseCity(result));list.append(button);});
+    list.hidden=!results.length;
   }
   el('location-button').addEventListener('click',()=>{ syncLocationSettings(); el('settings-modal').showModal(); el('location-source').focus(); });
   el('location-source').addEventListener('change',event=>{
@@ -221,16 +304,13 @@
     const request=++requestVersion;
     el('location-settings-status').textContent='Searching for that city…';
     try {
-      const response=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+      const response=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`);
       if(!response.ok)throw new Error('search failed');
-      const result=(await response.json()).results?.[0];
+      const results=(await response.json()).results?.filter(result=>validCoordinates({latitude:Number(result.latitude),longitude:Number(result.longitude)})&&result.timezone)||[];
       if(request!==requestVersion)return;
-      const next={latitude:Number(result?.latitude),longitude:Number(result?.longitude)};
-      if(!result||!validCoordinates(next)||!result.timezone)throw new Error('not found');
-      new Intl.DateTimeFormat('en',{timeZone:result.timezone});
-      config.custom=next; config.city=[result.name,result.admin1,result.country].filter(Boolean).filter((part,index,array)=>array.indexOf(part)===index).join(', '); config.timeZone=result.timezone; config.source='city';
-      applyLocation(); syncLocationSettings();
-      el('location-settings-status').textContent=`Using ${config.city}.`;
+      if(!results.length)throw new Error('not found');
+      showCityResults(results);
+      el('location-settings-status').textContent=results.length===1?'One match found. Choose it to continue.':`${results.length} matches found. Choose the right place.`;
     } catch {
       if(request===requestVersion)el('location-settings-status').textContent='City not found. Check the spelling and try again.';
     }
@@ -240,13 +320,17 @@
     const request=++requestVersion;
     el('use-device-location').disabled=true;
     el('location-settings-status').textContent='Waiting for your device’s location…';
-    navigator.geolocation.getCurrentPosition(position=>{
+    navigator.geolocation.getCurrentPosition(async position=>{
       if(request!==requestVersion)return;
       el('use-device-location').disabled=false;
       const next={latitude:position.coords.latitude,longitude:position.coords.longitude};
       if(!validCoordinates(next)){el('location-settings-status').textContent='The device returned an invalid position. Your current coordinates are still in use.';return;}
-      config.device=next; config.source='device'; applyLocation(); syncLocationSettings();
-      el('location-settings-status').textContent='Device location saved. Refresh here whenever you move.';
+      let resolvedZone=null;
+      try {const response=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${next.latitude.toFixed(4)}&longitude=${next.longitude.toFixed(4)}&current=is_day&timezone=auto`);if(response.ok)resolvedZone=(await response.json()).timezone||null;} catch {}
+      if(request!==requestVersion)return;
+      if(resolvedZone)try {new Intl.DateTimeFormat('en',{timeZone:resolvedZone});} catch {resolvedZone=null;}
+      config.device=next;config.deviceTimeZone=resolvedZone;config.source='device';applyLocation();syncLocationSettings();
+      el('location-settings-status').textContent=resolvedZone?'Device location and timezone saved. Refresh here whenever you move.':'Device location saved. Using your browser timezone because its timezone could not be resolved.';
     },()=>{
       if(request!==requestVersion)return;
       el('use-device-location').disabled=false;
@@ -259,9 +343,9 @@
   el('sun-size-scale').addEventListener('input',event=>{
     config.size=Number(event.target.value); el('sun-size-output').textContent=`${config.size}%`; persist(); render();
   });
-  el('reset-trigger').addEventListener('click',()=>{
+  document.addEventListener('quiet-reset',()=>{
     requestVersion++; el('use-device-location').disabled=false;
-    config={source:'city',custom:{...defaultLocation},city:'Choose a city',device:null,size:100,timeZone:'UTC',clouds:true}; preview=null;
+    config={source:'city',custom:null,city:'Choose a city',device:null,size:100,timeZone:null,deviceTimeZone:null,clouds:true}; preview=null;
     el('location-settings-status').textContent='Preferences reset. Search for a city to localize the sun.';
     syncLocationSettings(); applyLocation();
   });

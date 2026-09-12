@@ -90,10 +90,10 @@ footer { color: #464850; font-size: 11px; }
 footer button { padding: 4px; border: 0; color: #696b74; background: transparent; cursor: pointer; font-size: 11px; transition: color 160ms; }
 footer button:hover { color: #c5c6cb; }
 
-.modal { width: 100%; max-width: 430px; padding: 0; border: 0; overflow: visible; color: var(--text); background: transparent; content-visibility: auto; }
+.modal { width: min(430px, calc(100vw - 24px)); max-height: calc(100svh - 24px); padding: 0; border: 0; overflow: hidden; color: var(--text); background: transparent; content-visibility: auto; }
 .modal::backdrop { background: rgba(3,4,6,.73); backdrop-filter: blur(10px); animation: fade-in 180ms both; }
 .modal[open] .modal-card { animation: modal-in 240ms var(--ease) both; }
-.modal-card { display: flex; flex-direction: column; gap: 9px; padding: 24px; border: 1px solid var(--line-strong); border-radius: 24px; background: rgba(24, 25, 29, .97); box-shadow: 0 35px 100px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.04); }
+.modal-card { display: flex; flex-direction: column; gap: 9px; max-height: calc(100svh - 24px); overflow-y: auto; overscroll-behavior: contain; padding: 24px; border: 1px solid var(--line-strong); border-radius: 24px; background: rgba(24, 25, 29, .97); box-shadow: 0 35px 100px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.04); }
 .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 13px; }
 .modal-header h2 { margin: 2px 0 0; font-size: 20px; font-weight: 620; letter-spacing: -.03em; }
 .eyebrow { margin: 0; color: var(--quiet); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
@@ -120,6 +120,16 @@ footer button:hover { color: #c5c6cb; }
 .name-setting > label { margin-bottom: 10px; }
 .inline-field { display: flex; gap: 8px; }
 .inline-field input[type="text"] { margin: 0; }
+.city-results { display: grid; gap: 5px; margin-top: 9px; }
+.city-result { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: rgba(255,255,255,.035); cursor: pointer; font-size: 11px; text-align: left; }
+.city-result:hover { background: rgba(255,255,255,.075); border-color: var(--line-strong); }
+.confirm-modal { max-width: 390px; }
+.confirm-copy { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.secondary-button, .danger-button { height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 11px; cursor: pointer; font-size: 12px; font-weight: 620; }
+.secondary-button { color: var(--text); background: rgba(255,255,255,.04); }
+.danger-button { color: #fff; background: #a53d42; border-color: #c75359; }
+.danger-button:hover { background: #ba464c; }
 .toast { position: fixed; z-index: 20; right: 24px; bottom: 24px; align-items: center; gap: 9px; padding: 11px 14px; border: 1px solid var(--line-strong); border-radius: 13px; color: #d8d9dd; background: rgba(28,29,34,.93); box-shadow: 0 18px 45px rgba(0,0,0,.45); backdrop-filter: blur(18px); font-size: 12px; animation: toast-in 230ms var(--ease) both; }
 .toast:not([hidden]) { display: flex; }
 .toast-check { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; color: #9ae3b5; background: rgba(99,202,137,.1); font-size: 10px; }
@@ -138,6 +148,7 @@ footer button:hover { color: #c5c6cb; }
   .search-icon { display: none; }
   footer span { display: none; }
   footer { justify-content: center; }
+  .modal-card { padding: 19px; border-radius: 20px; }
 }
 @media (max-height: 720px) and (min-width: 681px) {
   .main-content { padding-top: 20px; padding-bottom: 30px; }
@@ -158,8 +169,9 @@ body { background: #0d1421; }
 .date-pill, .keyboard-tip, .icon-button { background: #10192933; border-color: #ffffff18; color: #d0d6df; }
 .main-content { width: min(100% - 40px, 680px); padding: 36px 0 30px; }
 .sky-heading { text-align:center; margin-bottom: 25px; display:flex; flex-direction:column; gap:10px; }
-.sky-heading .eyebrow { color:#c6ced6; font-size:9px; letter-spacing:.24em; }
-#sky-phase { color:#f2d5b3; font: italic 22px Georgia, serif; }
+.sky-heading .eyebrow { color:#c6ced6; font-size:12px; letter-spacing:.24em; }
+#sky-phase { color:#f2d5b3; font: italic 30px Georgia, serif; }
+#sky-message { min-height:1.4em; color:var(--muted); font-size:15px; line-height:1.45; letter-spacing:.01em; text-wrap:balance; }
 h1 { font-size:clamp(76px, 10vw, 112px); font-weight:350; letter-spacing:-.065em; }
 .period { color:#c3cbd7; }
 .hero { margin-bottom:28px; }
@@ -207,10 +219,8 @@ h1 { font-size:clamp(76px, 10vw, 112px); font-weight:350; letter-spacing:-.065em
 footer, footer button { color:#afb9c8; }
 [hidden] { display:none !important; }
 @media (max-width:680px) { .main-content { padding-top:20px; } .solar-panel { padding:20px 18px 14px; } .sky-heading { margin-bottom:20px; } .solar-meta { flex-wrap:wrap; } .daylight-stat strong { font-size:12px; } .solar-stats strong { font-size:16px; } }
-@media (max-height:800px) and (min-width:681px) { .main-content { padding-top:12px; } .sky-heading { margin-bottom:16px; } .sky-heading .eyebrow { display:none; } h1 { font-size:78px; } .solar-panel { margin-top:22px; } .sun-chart { height:86px; } }
-
 .horizon-label { top:52%; }
-@media (max-height:800px) and (min-width:681px) { .topbar { padding-top:18px; padding-bottom:15px; } .solar-panel { padding-top:18px; } .solar-stats { margin-bottom:14px; } .solar-meta { margin-top:14px; } .main-content { padding-bottom:12px; } footer { padding-top:14px; padding-bottom:14px; } }
+@media (max-height:800px) and (min-width:681px) { .topbar { padding-top:18px; padding-bottom:15px; } .main-content { padding:12px 0; } .sky-heading { margin-bottom:16px; } .sky-heading .eyebrow { display:none; } h1 { font-size:78px; } .solar-panel { margin-top:22px; padding-top:18px; } .sun-chart { height:86px; } .solar-stats { margin-bottom:14px; } .solar-meta { margin-top:14px; } footer { padding-top:14px; padding-bottom:14px; } }
 
 .sky-sun { transition: top 1s, left 1s, opacity 1s, box-shadow 1s, background 1s, width 1s, height 1s; }
 #chart-sun { fill:var(--sun-color); }

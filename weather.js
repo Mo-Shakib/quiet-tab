@@ -81,28 +81,29 @@
   async function fetchReading(latitude,longitude) {
     const key=cacheKey(latitude,longitude);
     const cached=readCache(key);
-    if(cached)return cached;
+    if(cached)return {...cached,cacheStatus:'cached'};
     const url=`${ENDPOINT}?latitude=${latitude.toFixed(2)}&longitude=${longitude.toFixed(2)}&current=${FIELDS}&timezone=UTC`;
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok)throw new Error(`Weather request failed: ${response.status}`);
     const reading=normalise(await response.json());
     if(!reading)throw new Error('Weather response was empty');
     try {root.localStorage.setItem(key,JSON.stringify(reading));} catch {}
-    return reading;
+    return {...reading,cacheStatus:'live'};
   }
 
   /* Follows one location, refreshing quietly and never throwing into the caller. */
-  function watch(onChange) {
+  function watch(onChange,onStatus=()=>{}) {
     let coordinates=null,timer=null,version=0,enabled=false;
     const emit=value=>onChange(value);
     async function refresh() {
       if(!enabled||!coordinates)return;
       const request=++version;
+      onStatus('loading');
       try {
         const reading=await fetchReading(coordinates.latitude,coordinates.longitude);
-        if(request===version)emit(classify(reading));
+        if(request===version){emit({...classify(reading),cacheStatus:reading.cacheStatus});onStatus(reading.cacheStatus);}
       } catch {
-        if(request===version)emit(null);
+        if(request===version){emit(null);onStatus('unavailable');}
       }
     }
     return {
@@ -111,8 +112,9 @@
         coordinates=next;refresh();
       },
       setEnabled(next) {
+        if(enabled===next)return;
         enabled=next;
-        if(!enabled){version++;clearInterval(timer);timer=null;emit(null);return;}
+        if(!enabled){version++;clearInterval(timer);timer=null;emit(null);onStatus('idle');return;}
         timer??=setInterval(refresh,MAX_AGE);
         refresh();
       }

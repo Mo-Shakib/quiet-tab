@@ -31,7 +31,7 @@
       </nav>
     </header>
     <main class="main-content">
-      <div class="sky-heading"><span class="eyebrow">A LITTLE CLOSER TO THE OUTSIDE</span><span id="sky-phase">Daylight</span></div>
+      <div class="sky-heading"><span class="eyebrow">A LITTLE CLOSER TO THE OUTSIDE</span><span id="sky-phase">Daylight</span><span id="sky-message">Let the daylight set the pace.</span></div>
       <section class="hero" aria-labelledby="clock-display">
         <div class="clock-row"><h1 id="clock-display">00:00</h1><span id="period-display" class="period">AM</span></div>
         <p id="greeting-display" class="greeting">Welcome back.</p>
@@ -76,7 +76,8 @@
             <form id="city-form">
               <label for="city-search">City</label>
               <div class="inline-field"><input id="city-search" type="search" required autocomplete="off" placeholder="Search city or town"><button class="primary-button" type="submit">Use city</button></div>
-              <p id="city-search-help">Your search is sent to Open-Meteo. Only the selected city name is shown in the extension.</p>
+              <p id="city-search-help">Your search is sent to Open-Meteo. Choose the matching region when several places share a name.</p>
+              <div id="city-results" class="city-results" aria-label="City search results" hidden></div>
             </form>
             <div id="device-location-controls" hidden><p>Use your device’s position for the local sun. Your browser may ask for permission.</p><button id="use-device-location" class="primary-button" type="button">Get device location</button></div>
             <p id="location-settings-status" role="status" aria-live="polite"></p>
@@ -87,6 +88,13 @@
           </section>
           <div class="name-setting"><label for="setting-username">Your name <small>Used in the greeting</small></label><div class="inline-field"><input id="setting-username" type="text" maxlength="24" autocomplete="off" placeholder="Optional"><button id="save-username" class="primary-button" type="button">Save</button></div></div>
         </div>
+      </div>
+    </dialog>
+    <dialog id="reset-modal" class="modal confirm-modal">
+      <div class="modal-card">
+        <div class="modal-header"><div><p class="eyebrow">Quiet New Tab</p><h2>Reset preferences?</h2></div><button class="modal-close icon-button" type="button" data-close="reset-modal" aria-label="Close"><svg viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button></div>
+        <p class="confirm-copy">This removes your saved location, name, search engine, clock format, and appearance settings.</p>
+        <div class="confirm-actions"><button class="secondary-button" type="button" data-close="reset-modal">Cancel</button><button id="confirm-reset" class="danger-button" type="button">Reset everything</button></div>
       </div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden><span class="toast-check">✓</span><span id="toast-message">Saved</span></div>
