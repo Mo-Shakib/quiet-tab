@@ -195,17 +195,6 @@ function syncSettings() {
   $("#setting-username").value = state.username;
 }
 
-function resetPreferences() {
-  ["nt_engine", "nt_24h", "nt_target_blank", "nt_username"].forEach((key) => safeStorage.remove(key));
-  state.engineIndex = 0;
-  state.is24Hour = false;
-  state.targetBlank = false;
-  state.username = "";
-  syncSettings(); renderEngine(); updateClock();
-  document.dispatchEvent(new CustomEvent("quiet-reset"));
-  showToast("Preferences reset");
-}
-
 function showToast(message) {
   const toast = $("#toast");
   $("#toast-message").textContent = message;
@@ -224,8 +213,6 @@ function bindEvents() {
   $("#setting-username").addEventListener("keydown", (event) => { if (event.key === "Enter") saveUsername(); });
   $("#setting-24h").addEventListener("change", (event) => { state.is24Hour = event.currentTarget.checked; safeStorage.set("nt_24h", state.is24Hour); updateClock(); });
   $("#setting-target").addEventListener("change", (event) => { state.targetBlank = event.currentTarget.checked; safeStorage.set("nt_target_blank", state.targetBlank); });
-  $("#reset-trigger").addEventListener("click", () => openDialog("reset-modal"));
-  $("#confirm-reset").addEventListener("click", () => { closeDialog("reset-modal"); resetPreferences(); });
   document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => closeDialog(button.dataset.close)));
   document.querySelectorAll("dialog").forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
   document.addEventListener("click", (event) => { if (!$(".engine-picker").contains(event.target)) toggleEngineMenu(false); });

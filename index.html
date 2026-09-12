@@ -71,8 +71,6 @@
         <p id="location-note" hidden></p>
       </section>
     </main>
-    <footer><button id="reset-trigger" type="button">Reset preferences</button></footer>
-
     <dialog id="settings-modal" class="modal">
       <div class="modal-card">
         <div class="modal-header"><h2>Preferences</h2><button class="modal-close icon-button" type="button" data-close="settings-modal" aria-label="Close"><svg viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button></div>
@@ -104,13 +102,6 @@
             <div class="name-setting"><label for="setting-username">Your name <small>Used in the greeting</small></label><div class="inline-field"><input id="setting-username" type="text" maxlength="24" autocomplete="off" placeholder="Optional"><button id="save-username" class="primary-button" type="button">Save</button></div></div>
           </section>
         </div>
-      </div>
-    </dialog>
-    <dialog id="reset-modal" class="modal confirm-modal">
-      <div class="modal-card">
-        <div class="modal-header"><div><p class="eyebrow">Quiet New Tab</p><h2>Reset preferences?</h2></div><button class="modal-close icon-button" type="button" data-close="reset-modal" aria-label="Close"><svg viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button></div>
-        <p class="confirm-copy">This removes your saved location, name, search engine, clock format, and appearance settings.</p>
-        <div class="confirm-actions"><button class="secondary-button" type="button" data-close="reset-modal">Cancel</button><button id="confirm-reset" class="danger-button" type="button">Reset everything</button></div>
       </div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden><span class="toast-check">✓</span><span id="toast-message">Saved</span></div>

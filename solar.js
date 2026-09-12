@@ -443,12 +443,6 @@
   el('sun-size-scale').addEventListener('input',event=>{
     config.size=Number(event.target.value); el('sun-size-output').textContent=`${config.size}%`; persist(); render();
   });
-  document.addEventListener('quiet-reset',()=>{
-    requestVersion++; el('use-device-location').disabled=false;
-    config={source:'city',custom:null,city:'Choose a city',device:null,size:100,timeZone:null,deviceTimeZone:null,clouds:true}; preview=null;
-    el('location-settings-status').textContent='Preferences reset. Search for a city to localize the sun.';
-    syncLocationSettings(); applyLocation();
-  });
   let _rafPending = false;
   function scheduleRender() { if (!_rafPending) { _rafPending = true; requestAnimationFrame(() => { _rafPending = false; render(); }); } }
   syncLocationSettings();
