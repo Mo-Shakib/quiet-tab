@@ -35,11 +35,14 @@ A Chrome extension that replaces your new tab page with a calm, minimal interfac
 
 ## Installation
 
-1. Clone or download this repository.
-2. Open `chrome://extensions` in Chrome.
-3. Enable **Developer mode** (top-right toggle).
-4. Click **Load unpacked** and select the project folder.
-5. Open a new tab to see it in action.
+1. Open [**Releases**](https://github.com/Mo-Shakib/quiet-tab/releases) and select the latest release.
+2. Under **Assets**, download `quiet-tab-X.Y.Z.zip` and extract it to a permanent folder on your computer.
+3. In Chrome, enter `chrome://extensions` in the address bar and press **Enter**.
+4. Turn on **Developer mode** using the switch in the top-right corner of the Extensions page.
+5. Click **Load unpacked** and select the extracted folder that contains `manifest.json`.
+6. Open a new tab to use Quiet New Tab.
+
+Keep the extracted folder after installation—Chrome loads the extension directly from that location. When a new version is released, download and extract the latest ZIP, then use the extension’s **Reload** button on `chrome://extensions`.
 
 ## How to Use
 
