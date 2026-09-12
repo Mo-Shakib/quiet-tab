@@ -41,6 +41,7 @@ jobs:
             app.js \
             solar.js \
             solar-model.js \
+            stars.js \
             weather.js \
             vendor/ \
             assets/ \
