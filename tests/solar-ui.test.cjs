@@ -44,7 +44,7 @@ test('a location-zone midnight rebuilds the graph even on the same UTC date',()=
 test('first run is explicitly illustrative and makes no weather request',()=>{
   const s=setup();
   assert.equal(s.node('sky-phase').textContent,'Illustrative sky');
-  assert.match(s.node('sky-message').textContent,/Choose a location/);
+  assert.match(s.node('sky-message').textContent,/calm preview/);
   assert.equal(s.node('sunrise-time').textContent,'—');
   assert.equal(s.node('weather-readout').textContent,'Illustrative sky');
   assert.equal(s.fetchRequests.length,0);

@@ -31,7 +31,7 @@
       </nav>
     </header>
     <main class="main-content">
-      <div class="sky-heading"><span class="eyebrow">A LITTLE CLOSER TO THE OUTSIDE</span><span id="sky-phase">Daylight</span><span id="sky-message">Let the daylight set the pace.</span></div>
+      <div class="sky-heading"><span id="sky-phase">Daylight</span><span id="sky-message">Let the daylight set the pace.</span></div>
       <section class="hero" aria-labelledby="clock-display">
         <div class="clock-row"><h1 id="clock-display">00:00</h1><span id="period-display" class="period">AM</span></div>
         <p id="greeting-display" class="greeting">Welcome back.</p>
@@ -48,9 +48,16 @@
           <button id="clear-search-btn" class="clear-button" type="button" aria-label="Clear search" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button>
           <button class="submit-button" type="submit" aria-label="Search"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M12 6l4 4-4 4"></path></svg></button>
         </form>
-        <p class="search-hint"><kbd>/</kbd> to focus <span></span> <kbd>Tab</kbd> to change engine</p>
       </section>
-      <section class="solar-panel" aria-label="Today’s sunlight">
+      <section id="solar-panel" class="solar-panel" aria-label="Today’s sunlight">
+        <div id="location-onboarding" class="location-onboarding" hidden>
+          <span class="onboarding-icon" aria-hidden="true">◎</span>
+          <div class="onboarding-copy">
+            <h2>See your local sky</h2>
+            <p>Add your city to show today’s sunrise, sunset, and live clouds.</p>
+          </div>
+          <button id="onboarding-location-button" class="onboarding-button" type="button">Choose your city</button>
+        </div>
         <div class="solar-header"><p id="solar-summary">Following the sun</p><button id="live-button" class="live-button" type="button"><span></span><span id="live-label">Live sky</span></button></div>
         <div class="sun-chart"><svg id="sun-chart" viewBox="0 0 640 130" preserveAspectRatio="none" role="img" aria-label="Sun altitude throughout today"><defs><linearGradient id="path-gradient"><stop stop-color="#bc8dff"/><stop offset=".4" stop-color="#ffe0a3"/><stop offset=".7" stop-color="#ffe0a3"/><stop offset="1" stop-color="#bc8dff"/></linearGradient></defs><line x1="0" y1="73" x2="640" y2="73" class="horizon-line"/><path id="solar-path"/><line id="sun-guide" x1="320" y1="20" x2="320" y2="130"/><circle id="chart-sun-halo" r="13"/><circle id="chart-sun" r="4.5"/></svg></div>
         <div class="solar-stats"><div><span class="stat-label">↗ Sunrise</span><strong id="sunrise-time">—</strong></div><div class="daylight-stat"><span class="stat-label">Daylight</span><strong id="daylight-duration">—</strong></div><div><span class="stat-label">↘ Sunset</span><strong id="sunset-time">—</strong></div></div>
@@ -61,15 +68,18 @@
         <p id="location-note" hidden></p>
       </section>
     </main>
-    <footer><span>A quiet space. A changing sky.</span><button id="reset-trigger" type="button">Reset preferences</button></footer>
+    <footer><button id="reset-trigger" type="button">Reset preferences</button></footer>
 
     <dialog id="settings-modal" class="modal">
       <div class="modal-card">
-        <div class="modal-header"><div><p class="eyebrow">New tab</p><h2>Preferences</h2></div><button class="modal-close icon-button" type="button" data-close="settings-modal" aria-label="Close"><svg viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button></div>
+        <div class="modal-header"><h2>Preferences</h2><button class="modal-close icon-button" type="button" data-close="settings-modal" aria-label="Close"><svg viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8"></path></svg></button></div>
         <div class="settings-list">
-          <label class="setting-row" for="setting-24h"><span><strong>24-hour clock</strong><small>Use the compact 24-hour format</small></span><span class="switch"><input id="setting-24h" type="checkbox"><span></span></span></label>
-          <label class="setting-row" for="setting-target"><span><strong>Open in a new tab</strong><small>Keep this page open after searching</small></span><span class="switch"><input id="setting-target" type="checkbox"><span></span></span></label>
-          <section class="location-setting" aria-labelledby="location-settings-title">
+          <section class="settings-group" aria-labelledby="general-settings-title">
+            <h3 id="general-settings-title">General</h3>
+            <label class="setting-row" for="setting-24h"><span><strong>24-hour clock</strong><small>Use the compact 24-hour format</small></span><span class="switch"><input id="setting-24h" type="checkbox"><span></span></span></label>
+            <label class="setting-row" for="setting-target"><span><strong>Open searches in a new tab</strong><small>Keep this page open after searching</small></span><span class="switch"><input id="setting-target" type="checkbox"><span></span></span></label>
+          </section>
+          <section class="settings-group location-setting" aria-labelledby="location-settings-title">
             <h3 id="location-settings-title">Sun &amp; location</h3>
             <label for="location-source">Location source</label>
             <select id="location-source"><option value="city">Search for a city</option><option value="device">Device location</option></select>
@@ -84,9 +94,12 @@
             <label class="setting-row cloud-setting" for="setting-clouds"><span><strong>Live clouds</strong><small>Draws the sky from current cloud cover using Open-Meteo.</small></span><span class="switch"><input id="setting-clouds" type="checkbox" checked><span></span></span></label>
             <label class="sun-size-label" for="sun-size-scale">Sun display scale <output id="sun-size-output">100%</output></label>
             <input id="sun-size-scale" type="range" min="60" max="160" step="5" value="100">
-            <p class="sun-setting-note">The sun crosses the full width of the window, from sunrise at the left edge to sunset at the right. Its apparent diameter follows the solar model; the disk is enlarged for visibility and this slider adjusts that display scale.</p>
+            <p class="sun-setting-note">Adjust the sun’s display size without changing the solar model.</p>
           </section>
-          <div class="name-setting"><label for="setting-username">Your name <small>Used in the greeting</small></label><div class="inline-field"><input id="setting-username" type="text" maxlength="24" autocomplete="off" placeholder="Optional"><button id="save-username" class="primary-button" type="button">Save</button></div></div>
+          <section class="settings-group" aria-labelledby="personal-settings-title">
+            <h3 id="personal-settings-title">Personalization</h3>
+            <div class="name-setting"><label for="setting-username">Your name <small>Used in the greeting</small></label><div class="inline-field"><input id="setting-username" type="text" maxlength="24" autocomplete="off" placeholder="Optional"><button id="save-username" class="primary-button" type="button">Save</button></div></div>
+          </section>
         </div>
       </div>
     </dialog>

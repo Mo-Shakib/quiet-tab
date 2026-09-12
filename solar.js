@@ -125,6 +125,78 @@
     const slot=Math.floor(+date/1200000);
     return messages[((slot%messages.length)+messages.length)%messages.length];
   }
+  function solarMoment(date,alt,rising) {
+    const hour=SolarModel.parts(date,zone()).hour;
+    if(alt < -12) return 'Night';
+    if(alt < 0) return rising ? 'Dawn' : 'Dusk';
+    if(alt < 6) return 'Golden hour';
+    if(hour < 11) return 'Morning';
+    if(hour < 14) return 'Midday';
+    if(hour < 18) return 'Afternoon';
+    return 'Evening';
+  }
+  const EXPERIENCE_DATA={
+    weather:{
+      storm:{heading:'charged and stormy',sky:'Dark, unsettled cloud and possible thunder may make being outside feel exposed.'},
+      rain:{heading:'rain-soaked',sky:'Rain is veiling much of the sky and making outdoor plans feel less inviting.'},
+      drizzle:{heading:'soft and drizzly',sky:'Fine rain is softening the view and leaving exposed surfaces damp.'},
+      snow:{heading:'quiet and snowy',sky:'Snow is diffusing the light and may make movement outside slower.'},
+      fog:{heading:'hazy and hushed',sky:'Low visibility is hiding the distance and may make travel feel more demanding.'},
+      overcast:{heading:'muted and overcast',sky:'A solid cloud layer is flattening the light and hiding most of the open sky.'},
+      partly:{heading:'softly changing',sky:'Passing clouds are alternating the view between open sky and soft shade.'},
+      fair:{heading:'mostly open',sky:'Most of the sky is visible, with only occasional cloud softening the light.'},
+      clear:{heading:'open-sky',sky:'The sky is largely unobstructed and distant details may be easier to make out.'},
+      unknown:{heading:'cloud-softened',sky:'Cloud is softening the light, though the exact condition is uncertain.'}
+    },
+    comfort:[
+      {max:5,heading:'sharply cold',feel:'The air may feel biting, especially on exposed skin.'},
+      {max:12,heading:'cold and crisp',feel:'The air may feel brisk enough for an extra layer.'},
+      {max:18,heading:'cool',feel:'The air may feel cool and comfortable with a light layer.'},
+      {max:25,heading:'gentle',feel:'The air may feel mild and easy to settle into.'},
+      {max:30,heading:'warm',feel:'The warmth may be noticeable without feeling overwhelming.'},
+      {max:35,heading:'hot',feel:'The heat may feel tiring after time outside.'},
+      {max:Infinity,heading:'intensely hot',feel:'The heat may feel strenuous, so shade and water could matter.'}
+    ],
+    visibility:[
+      {max:1,heading:'low-visibility',text:'Measured visibility is very low, so nearby surroundings may fade quickly into the air.'},
+      {max:5,heading:'veiled',text:'Measured visibility is limited and the horizon may be difficult to make out.'},
+      {max:10,heading:'hazy',text:'The distance may look muted even when the nearby sky seems clear.'}
+    ]
+  };
+  function experienceSignals(weather) {
+    const feelsLike=Number.isFinite(weather.apparentTemperature)?weather.apparentTemperature:weather.temperature;
+    const humidity=weather.humidity;
+    const comfort=Number.isFinite(feelsLike)?EXPERIENCE_DATA.comfort.find(item=>feelsLike<=item.max):EXPERIENCE_DATA.comfort[3];
+    const visibility=Number.isFinite(weather.visibility)?EXPERIENCE_DATA.visibility.find(item=>weather.visibility<item.max):null;
+    const humid=Number.isFinite(humidity)&&humidity>=72;
+    const dry=Number.isFinite(humidity)&&humidity<=35;
+    let heading=comfort.heading, feel=comfort.feel;
+    if(Number.isFinite(feelsLike)&&feelsLike>=27&&humid){heading=feelsLike>=33?'hot and heavy':'warm and muggy';feel='The air may feel sticky and heavier than the temperature alone suggests.';}
+    else if(Number.isFinite(feelsLike)&&feelsLike<=17&&humid){heading='cool and damp';feel='The cool air may feel more penetrating with the added moisture.';}
+    else if(dry&&Number.isFinite(feelsLike)&&feelsLike>=27){heading='hot and dry';feel='The warmth may feel sharp and drying, especially in direct light.';}
+    const wind=Number.isFinite(weather.windGusts)?weather.windGusts:weather.windSpeed;
+    const windText=Number.isFinite(wind)&&wind>=45?'Strong gusts may make the conditions feel more forceful.':Number.isFinite(wind)&&wind>=25?'A noticeable breeze may change how the air feels on exposed skin.':'';
+    return {heading,feel,visibility,windText};
+  }
+  function conditionHeading(date,alt,rising,weather) {
+    const solarLabel=solarMoment(date,alt,rising);
+    if(!weather) return solarLabel;
+    const moment=solarLabel.toLowerCase();
+    const scenario=EXPERIENCE_DATA.weather[weather.kind]||EXPERIENCE_DATA.weather.unknown;
+    const signals=experienceSignals(weather);
+    const weatherFirst=['storm','rain','drizzle','snow','fog'].includes(weather.kind);
+    const rainHeading=weather.kind==='rain'&&Number.isFinite(weather.precipitationRate)?(weather.precipitationRate>=7.5?'heavy, rain-filled':weather.precipitationRate>=2.5?'steadily rainy':scenario.heading):scenario.heading;
+    const descriptor=weatherFirst?rainHeading:signals.visibility?.heading||((weather.kind==='clear'||weather.kind==='fair')?signals.heading:scenario.heading);
+    return `${/^[aeiou]/i.test(descriptor)?'An':'A'} ${descriptor} ${moment}`;
+  }
+  function conditionMessage(weather,date,alt,rising) {
+    if(!weather) return messageFor(date,alt,rising);
+    const scenario=EXPERIENCE_DATA.weather[weather.kind]||EXPERIENCE_DATA.weather.unknown;
+    const signals=experienceSignals(weather);
+    const rainText=weather.kind==='rain'&&Number.isFinite(weather.precipitationRate)&&weather.precipitationRate>=7.5?'Heavy rain is sharply reducing the usable view and may make travel difficult.':weather.kind==='rain'&&Number.isFinite(weather.precipitationRate)&&weather.precipitationRate>=2.5?'Steady rain is veiling the sky and keeping exposed areas thoroughly wet.':scenario.sky;
+    const skyText=signals.visibility?.text||rainText;
+    return [signals.feel,skyText,signals.windText].filter(Boolean).slice(0,3).join(' ');
+  }
   const channels = hex => hex.match(/[a-f\d]{2}/gi).map(n=>parseInt(n,16));
   const _mixCache = new Map();
   function mix(a,b,t) {
@@ -156,7 +228,7 @@
       if(status==='loading'&&!reading) {readout.hidden=false;readout.textContent='Updating clouds…';readout.dataset.status='loading';note.textContent='Requesting current cloud cover from Open-Meteo';return;}
       if(!reading) {readout.hidden=false; readout.textContent=status==='unavailable'?'Clouds unavailable':'Waiting for clouds…';readout.dataset.status=status; note.textContent='Clear-sky simulation · cloud data unavailable'; return;}
       readout.hidden=false;
-      const temperature=Number.isFinite(reading.temperature)?` · ${Math.round(reading.temperature)}°`:'';
+      const temperature=Number.isFinite(reading.temperature)?` · ${Math.round(reading.temperature)}°C`:'';
       readout.textContent=`${reading.label} · ${Math.round(reading.cover*100)}% cloud${temperature}${reading.cacheStatus==='cached'?' · cached':''}`;
       readout.dataset.status=reading.cacheStatus||'live';
       note.textContent=`Live cloud cover · Open-Meteo · ${ago(Date.now()-reading.observedAt)}`;
@@ -190,15 +262,21 @@
   }
   function render() {
     const now = new Date(); prepareDay(now);
+    const hasLocation = configured();
+    const solarPanel = el('solar-panel');
+    if (solarPanel?.classList) solarPanel.classList.toggle('is-unconfigured', !hasLocation);
+    el('location-onboarding').hidden = hasLocation;
     const date = preview === null ? now : new Date(+start+clamp(preview,0,(end-start)/60000-1)*60000);
     window.solarContext={date:preview===null?null:date,timeZone:zone()};
     updateClock();
     const position=SolarModel.position(date,coordinates.latitude,coordinates.longitude);
     const alt = position.elevation;
     const rising = altitude(new Date(+date+60000)) > position.altitude;
-    const phase = alt < -18 ? 'The quiet of night' : alt < -12 ? 'Astronomical twilight' : alt < -6 ? 'Nautical twilight' : alt < 0 ? (rising?'First light':'Last light') : alt < 6 ? 'Golden hour' : 'Under the daylight';
-    setTextOnce('sky-phase', configured()?phase:'Illustrative sky');
-    setTextOnce('sky-message', configured()?messageFor(date,alt,rising):'Choose a location and let the sky meet you where you are.');
+    const weather = clouds.current();
+    const headingWeather = preview === null ? weather : null;
+    const phase = solarMoment(date,alt,rising);
+    setTextOnce('sky-phase', configured()?conditionHeading(date,alt,rising,headingWeather):'Illustrative sky');
+    setTextOnce('sky-message', configured()?conditionMessage(headingWeather,date,alt,rising):'A calm preview until you make it yours.');
     const upper = palettes.findIndex(([e])=>e >= alt);
     const hi = upper < 0 ? palettes.length-1 : upper, lo = Math.max(0,hi-1);
     const t = hi===lo ? 0 : clamp((alt-palettes[lo][0])/(palettes[hi][0]-palettes[lo][0]),0,1);
@@ -208,7 +286,6 @@
     const css = document.documentElement.style;
     const airMass=1/(Math.sin(clamp(position.altitude,0,90)*Math.PI/180)+.50572*Math.pow(clamp(position.altitude,0,90)+6.07995,-1.6364));
     const warmth=clamp(1-Math.exp(-.09*(airMass-1)),0,1);
-    const weather = clouds.current();
     const grey = weather ? weather.shade*.5 : 0;
     ['--sky-top','--sky-mid','--sky-bottom'].forEach((name,i)=>setCSSOnce(css,name,mix(sky[i],'#6d7585',grey)));
     const horizonGlow = Math.exp(-((alt>=0?alt/9:alt/12)**2))*(alt<-16?0:1);
@@ -254,11 +331,12 @@
     const compass=['N','NE','E','SE','S','SW','W','NW'][Math.round(position.azimuth/45)%8];
     setTextOnce('light-level', `${position.altitude.toFixed(1)}° elevation · ${position.azimuth.toFixed(1)}° ${compass}`);
     el('light-level').title = `Apparent elevation with standard refraction. Solar diameter ${position.diameter.toFixed(3)}°, distance ${position.distanceAU.toFixed(4)} AU. East is left in the sky projection.`;
-    setTextOnce('preview-time', preview === null ? `Now · ${formatTime(date)}` : `Preview · ${formatTime(date)}`);
+    setTextOnce('preview-time', preview === null ? `Now · ${formatTime(date)}` : `Previewing · ${formatTime(date)}`);
     el('time-slider').setAttribute('aria-valuetext',`${formatTime(date)}, ${phase}`);
     if(preview === null) el('time-slider').value = Math.floor((now-start)/60000);
     el('live-button').dataset.preview = String(preview !== null);
-    setTextOnce('live-label', preview === null ? 'Live sky' : 'Back to live');
+    if (solarPanel) solarPanel.dataset.preview = String(preview !== null);
+    setTextOnce('live-label', preview === null ? 'Live sky' : 'Return to now');
   }
   el('time-slider').addEventListener('input',event=>{preview=Number(event.target.value);render();});
   el('live-button').addEventListener('click',()=>{preview=null;render();});
@@ -292,6 +370,7 @@
     list.hidden=!results.length;
   }
   el('location-button').addEventListener('click',()=>{ syncLocationSettings(); el('settings-modal').showModal(); el('location-source').focus(); });
+  el('onboarding-location-button').addEventListener('click',()=>{ syncLocationSettings(); el('settings-modal').showModal(); el('city-search').focus(); });
   el('location-source').addEventListener('change',event=>{
     requestVersion++; el('use-device-location').disabled=false;
     config.source=event.target.value; syncLocationSettings(); applyLocation();

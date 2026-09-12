@@ -9,6 +9,8 @@ test('cloud decks follow the reported cover',()=>{
   for(const deck of Object.values(clear.layers))assert.equal(deck,0);
   const overcast=classify({code:3,cloudCover:98,low:95,mid:70,high:30});
   assert.equal(overcast.kind,'overcast');
+  assert.equal(classify({humidity:81}).humidity,81);
+  assert.equal(classify({visibility:4200}).visibility,4.2);
   assert(overcast.layers.low>clear.layers.low&&overcast.density>.9);
   assert(overcast.shade>clear.shade,'an overcast deck reads greyer than clear sky');
 });
@@ -37,8 +39,10 @@ test('a partial or empty reading still produces a usable sky',()=>{
 test('malformed responses are rejected rather than drawn',()=>{
   assert.equal(normalise(null),null);
   assert.equal(normalise({}),null);
-  const reading=normalise({current:{weather_code:3,cloud_cover:88,temperature_2m:21.4,wind_speed_10m:12}});
+  const reading=normalise({current:{weather_code:3,cloud_cover:88,temperature_2m:21.4,apparent_temperature:23.1,visibility:8500,wind_speed_10m:12,wind_gusts_10m:27}});
   assert.equal(reading.code,3);
   assert.equal(reading.high,null);
+  assert.equal(reading.apparentTemperature,23.1);
+  assert.equal(reading.visibility,8500);
   assert.equal(classify(reading).kind,'overcast');
 });

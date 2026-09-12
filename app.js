@@ -74,6 +74,8 @@ function renderEngine() {
     const option = document.createElement("button");
     option.type = "button";
     option.className = "engine-option";
+    option.id = `engine-option-${item.id}`;
+    option.tabIndex = -1;
     option.setAttribute("role", "option");
     option.setAttribute("aria-selected", String(index === state.engineIndex));
     option.append(engineBadge(item));
@@ -87,16 +89,40 @@ function renderEngine() {
       option.append(check);
     }
     option.addEventListener("click", () => selectEngine(index));
+    option.addEventListener("keydown", handleEngineOptionKeydown);
     list.append(option);
   });
 }
 
-function toggleEngineMenu(force) {
+function focusEngineOption(index) {
+  const options = [...document.querySelectorAll(".engine-option")];
+  options[(index + options.length) % options.length]?.focus();
+}
+
+function handleEngineOptionKeydown(event) {
+  const options = [...document.querySelectorAll(".engine-option")];
+  const index = options.indexOf(event.currentTarget);
+  if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+    event.preventDefault();
+    const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : index + (event.key === "ArrowDown" ? 1 : -1);
+    focusEngineOption(next);
+  } else if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    selectEngine(index, true);
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    toggleEngineMenu(false);
+    $("#engine-dropdown-button").focus();
+  }
+}
+
+function toggleEngineMenu(force, focusSelected = false) {
   const button = $("#engine-dropdown-button");
   const menu = $("#engine-menu");
   const shouldOpen = force ?? menu.hidden;
   menu.hidden = !shouldOpen;
   button.setAttribute("aria-expanded", String(shouldOpen));
+  if (shouldOpen && focusSelected) requestAnimationFrame(() => focusEngineOption(state.engineIndex));
 }
 
 function selectEngine(index, notify = false) {
@@ -190,7 +216,7 @@ function showToast(message) {
 
 function bindEvents() {
   $("#search-form").addEventListener("submit", handleSearch);
-  $("#engine-dropdown-button").addEventListener("click", () => toggleEngineMenu());
+  $("#engine-dropdown-button").addEventListener("click", () => toggleEngineMenu(undefined, true));
   $("#clear-search-btn").addEventListener("click", () => { $("#search-input").value = ""; $("#clear-search-btn").hidden = true; $("#search-input").focus(); });
   $("#search-input").addEventListener("input", (event) => { $("#clear-search-btn").hidden = !event.currentTarget.value; });
   $("#open-settings-trigger").addEventListener("click", () => openDialog("settings-modal"));

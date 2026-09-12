@@ -7,7 +7,7 @@
   const unit=n=>clamp(n,0,1);
   const number=value=>Number.isFinite(value)?value:null;
   const ENDPOINT='https://api.open-meteo.com/v1/forecast';
-  const FIELDS='temperature_2m,relative_humidity_2m,is_day,weather_code,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,precipitation';
+  const FIELDS='temperature_2m,apparent_temperature,relative_humidity_2m,is_day,weather_code,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,wind_speed_10m,wind_gusts_10m,precipitation';
   const MAX_AGE=15*60000;
 
   // WMO 4677 weather codes, grouped by what the sky actually looks like.
@@ -48,7 +48,12 @@
       drift:clamp((number(reading.windSpeed)??8)/40,.12,1),
       precipitation:wet?kind:null,
       temperature:number(reading.temperature),
+      apparentTemperature:number(reading.apparentTemperature),
+      humidity,
       windSpeed:number(reading.windSpeed),
+      windGusts:number(reading.windGusts),
+      visibility:Number.isFinite(reading.visibility)?Math.max(0,reading.visibility/1000):null,
+      precipitationRate:number(reading.precipitationRate),
       observedAt:number(reading.observedAt)
     };
   }
@@ -66,6 +71,9 @@
       windSpeed:number(current.wind_speed_10m),
       precipitationRate:number(current.precipitation),
       temperature:number(current.temperature_2m),
+      apparentTemperature:number(current.apparent_temperature),
+      visibility:number(current.visibility),
+      windGusts:number(current.wind_gusts_10m),
       observedAt:Date.now()
     };
   }
