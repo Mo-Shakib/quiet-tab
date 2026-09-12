@@ -34,7 +34,7 @@ jobs:
       - name: Build extension zip
         if: steps.check_tag.outputs.exists == 'false'
         run: |
-          zip -r quiet-new-tab-${{ steps.version.outputs.version }}.zip \
+          zip -r quiet-tab-${{ steps.version.outputs.version }}.zip \
             manifest.json \
             index.html \
             styles.css \
@@ -43,7 +43,8 @@ jobs:
             solar-model.js \
             weather.js \
             vendor/ \
-            assets/
+            assets/ \
+            icons/
 
       - name: Create GitHub Release
         if: steps.check_tag.outputs.exists == 'false'
@@ -52,4 +53,4 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Quiet New Tab ${{ steps.version.outputs.tag }}
           generate_release_notes: true
-          files: quiet-new-tab-${{ steps.version.outputs.version }}.zip
+          files: quiet-tab-${{ steps.version.outputs.version }}.zip
