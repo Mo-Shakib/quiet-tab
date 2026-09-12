@@ -17,7 +17,8 @@ test('preview drives the same timestamp, theme, solar position and clock context
   assert.equal(s.context.solarContext.timeZone,'UTC');const sunsetHue=s.styles['--ui-hue'];
   assert(parseFloat(s.styles['--sun-x'])>50);
   s.node('time-slider').events.input({target:{value:0}});assert.notEqual(s.styles['--ui-hue'],sunsetHue);assert.equal(s.styles['--sun-opacity'],0);
-  assert.equal(s.node('sky-message').textContent,'Tomorrow’s light is already on its way.');
+  assert.equal(s.node('sky-message').textContent,'Previewing the sun and sky at this time.');
+  assert.equal(s.node('sky-fact').textContent,'Tomorrow’s light is already on its way.');
   s.node('live-button').events.click();assert.equal(s.context.solarContext.date,null);assert.equal(s.node('live-label').textContent,'Live sky');
 });
 test('city search offers labelled matches and saves the selected timezone without displaying coordinates',async()=>{

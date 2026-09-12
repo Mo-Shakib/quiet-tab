@@ -39,10 +39,11 @@ test('a partial or empty reading still produces a usable sky',()=>{
 test('malformed responses are rejected rather than drawn',()=>{
   assert.equal(normalise(null),null);
   assert.equal(normalise({}),null);
-  const reading=normalise({current:{weather_code:3,cloud_cover:88,temperature_2m:21.4,apparent_temperature:23.1,visibility:8500,wind_speed_10m:12,wind_gusts_10m:27}});
+  const reading=normalise({current:{weather_code:3,cloud_cover:88,temperature_2m:21.4,apparent_temperature:23.1,visibility:8500,wind_speed_10m:12,wind_direction_10m:270,wind_gusts_10m:27}});
   assert.equal(reading.code,3);
   assert.equal(reading.high,null);
   assert.equal(reading.apparentTemperature,23.1);
   assert.equal(reading.visibility,8500);
+  assert.equal(classify(reading).windDirection,270);
   assert.equal(classify(reading).kind,'overcast');
 });

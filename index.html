@@ -12,10 +12,12 @@
     <script src="weather.js" defer></script>
     <script src="app.js" defer></script>
     <script src="solar.js" defer></script>
+    <script src="stars.js" defer></script>
   </head>
   <body>
     <div class="ambient" aria-hidden="true">
       <div class="sky-afterglow"></div>
+      <canvas id="star-field"></canvas>
       <div class="cloud-sheet"></div>
       <div class="cloud-deck cloud-high"></div>
       <div class="cloud-deck cloud-mid"></div>
@@ -35,6 +37,7 @@
       <section class="hero" aria-labelledby="clock-display">
         <div class="clock-row"><h1 id="clock-display">00:00</h1><span id="period-display" class="period">AM</span></div>
         <p id="greeting-display" class="greeting">Welcome back.</p>
+        <p id="sky-fact" class="sky-fact">The sky is always changing.</p>
       </section>
       <section class="search-section" aria-label="Web search">
         <form id="search-form" class="search-shell">

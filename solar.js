@@ -247,17 +247,34 @@
     const css=document.documentElement.style;
     const daylight=clamp((elevation+8)/14,0,1);
     if(!weather) {['--cloud-low','--cloud-mid','--cloud-high','--cloud-sheet','--cloud-glow','--haze'].forEach(name=>setCSSOnce(css,name,'0')); return;}
-    const lit=mix('#39415f',mix('#fffaf0','#ffab74',warmth),daylight);
+    const cloudTones={
+      storm:{shadow:'#222938',light:'#687384',shadeBoost:.34,glow:.22},
+      rain:{shadow:'#303849',light:'#8793a4',shadeBoost:.2,glow:.38},
+      drizzle:{shadow:'#465164',light:'#aab4c1',shadeBoost:.1,glow:.55},
+      snow:{shadow:'#8290a3',light:'#f4f7fb',shadeBoost:-.08,glow:.7},
+      fog:{shadow:'#788391',light:'#d8dfe5',shadeBoost:.02,glow:.2},
+      overcast:{shadow:'#465164',light:'#a6afbb',shadeBoost:.12,glow:.42},
+      partly:{shadow:'#59677a',light:'#eef2f6',shadeBoost:0,glow:.85},
+      fair:{shadow:'#66758a',light:'#fafbfc',shadeBoost:-.04,glow:1},
+      clear:{shadow:'#6e7d91',light:'#ffffff',shadeBoost:-.08,glow:1}
+    };
+    const tone=cloudTones[weather.kind]||cloudTones.partly;
+    const sunlit=mix(tone.light,'#ffad73',warmth*.72);
+    const lit=mix('#39415f',sunlit,daylight);
     setCSSOnce(css,'--cloud-lit',lit);
-    setCSSOnce(css,'--cloud-top',mix(lit,'#dfe7f3',.3));
-    setCSSOnce(css,'--cloud-shade',mix(mix('#1d2438',mix('#93a1bb','#9a7d8e',warmth),daylight),'#4a5165',weather.shade*.7));
+    setCSSOnce(css,'--cloud-top',mix(lit,tone.light,.32));
+    setCSSOnce(css,'--cloud-shade',mix(tone.shadow,mix('#9aa7b9','#927887',warmth),daylight*clamp(.62-weather.shade-tone.shadeBoost,0,.62)));
     const presence=.28+.72*daylight;
     setCSSOnce(css,'--cloud-low',(weather.layers.low*presence).toFixed(3));
     setCSSOnce(css,'--cloud-mid',(weather.layers.mid*presence).toFixed(3));
     setCSSOnce(css,'--cloud-high',(weather.layers.high*presence).toFixed(3));
     setCSSOnce(css,'--cloud-sheet',(clamp((weather.cover-.55)/.45,0,1)*.8*presence).toFixed(3));
-    setCSSOnce(css,'--cloud-glow',(weather.density*daylight*.85).toFixed(3));
+    setCSSOnce(css,'--cloud-glow',(weather.density*daylight*.85*tone.glow).toFixed(3));
     setCSSOnce(css,'--cloud-drift',weather.drift.toFixed(2));
+    const towardEast=Number.isFinite(weather.windDirection)?-Math.sin(weather.windDirection*Math.PI/180):1;
+    setCSSOnce(css,'--cloud-direction',towardEast>=0?'normal':'reverse');
+    const gustiness=Number.isFinite(weather.windGusts)&&Number.isFinite(weather.windSpeed)?clamp((weather.windGusts-weather.windSpeed)/35,0,1):0;
+    setCSSOnce(css,'--cloud-breathe',`${(2.5+gustiness*2).toFixed(1)}s`);
     setCSSOnce(css,'--haze',(weather.haze*(.3+.7*daylight)*.5).toFixed(3));
   }
   function render() {
@@ -276,7 +293,9 @@
     const headingWeather = preview === null ? weather : null;
     const phase = solarMoment(date,alt,rising);
     setTextOnce('sky-phase', configured()?conditionHeading(date,alt,rising,headingWeather):'Illustrative sky');
-    setTextOnce('sky-message', configured()?conditionMessage(headingWeather,date,alt,rising):'A calm preview until you make it yours.');
+    const weatherMessage=headingWeather?conditionMessage(headingWeather,date,alt,rising):preview!==null?'Previewing the sun and sky at this time.':'Weather details are unavailable right now.';
+    setTextOnce('sky-message', configured()?weatherMessage:'A calm preview until you make it yours.');
+    setTextOnce('sky-fact',messageFor(date,alt,rising));
     const upper = palettes.findIndex(([e])=>e >= alt);
     const hi = upper < 0 ? palettes.length-1 : upper, lo = Math.max(0,hi-1);
     const t = hi===lo ? 0 : clamp((alt-palettes[lo][0])/(palettes[hi][0]-palettes[lo][0]),0,1);
@@ -337,6 +356,8 @@
     el('live-button').dataset.preview = String(preview !== null);
     if (solarPanel) solarPanel.dataset.preview = String(preview !== null);
     setTextOnce('live-label', preview === null ? 'Live sky' : 'Return to now');
+    window.quietSkyState={date,latitude:coordinates.latitude,longitude:coordinates.longitude,configured:configured(),solarElevation:alt,weather:preview===null?weather:null};
+    if(typeof CustomEvent==='function') window.dispatchEvent(new CustomEvent('quiet-sky-update',{detail:window.quietSkyState}));
   }
   el('time-slider').addEventListener('input',event=>{preview=Number(event.target.value);render();});
   el('live-button').addEventListener('click',()=>{preview=null;render();});
