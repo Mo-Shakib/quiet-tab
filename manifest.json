@@ -3,6 +3,12 @@
   "name": "Quiet New Tab",
   "version": "1.0.0",
   "description": "A quiet new tab with a live solar sky, sunrise and sunset times, and an interactive day timeline.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
